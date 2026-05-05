@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="#232F3E"/>
+  
+  <!-- AWS smile/arrow -->
+  <path d="M32 78 Q64 92 96 78" stroke="#FF9900" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M88 76 L96 78 L90 84" stroke="#FF9900" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Diagram nodes -->
+  <rect x="36" y="34" width="20" height="16" rx="3" fill="#8C4FFF" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="72" y="34" width="20" height="16" rx="3" fill="#ED7100" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="54" y="56" width="20" height="16" rx="3" fill="#DD344C" stroke="#ffffff" stroke-width="1.5"/>
+  
+  <!-- Connection lines between nodes -->
+  <line x1="52" y1="50" x2="58" y2="56" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="76" y1="50" x2="70" y2="56" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- Small draw.io pencil hint -->
+  <path d="M98 28 L104 22 L108 26 L102 32 Z" fill="#FF9900" stroke="none"/>
+  <line x1="98" y1="28" x2="96" y2="30" stroke="#FF9900" stroke-width="2" stroke-linecap="round"/>
+</svg>

@@ -209,6 +209,60 @@ When one service connects to multiple targets stacked vertically:
 
 **Key principle:** Explicit waypoints > auto-routing for cross-account diagrams. The extra XML is worth it for clean, non-overlapping edges.
 
+#### Pattern: Vertical Trunk Line (multiple sources → multiple targets)
+
+From the reference diagram (Log Archive): multiple log sources on LEFT feed into a vertical "trunk" corridor, then branch right to individual S3 buckets.
+
+```
+Source A ──────┐
+               │  ← trunk at fixed X (e.g. x=500)
+Source B ──────┤
+               │
+Source C ──────┘
+               │
+               ├──── Target 1 (bucket-network)
+               │
+               ├──── Target 2 (bucket-security)
+               │
+               └──── Target 3 (bucket-cloudtrail)
+```
+
+Implementation: each edge shares a common X-coordinate for waypoints, offset by 15-20px per edge:
+
+```xml
+<!-- Source A → Target 1: trunk at x=500 -->
+<mxCell id="e-a-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;..." edge="1" parent="1" source="src-a" target="tgt-1">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="500" y="150" />
+      <mxPoint x="500" y="150" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+
+<!-- Source B → Target 2: trunk at x=515 (offset 15px) -->
+<mxCell id="e-b-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;..." edge="1" parent="1" source="src-b" target="tgt-2">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="515" y="350" />
+      <mxPoint x="515" y="370" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+
+<!-- Source C → Target 3: trunk at x=530 (offset 30px) -->
+<mxCell id="e-c-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;..." edge="1" parent="1" source="src-c" target="tgt-3">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="530" y="550" />
+      <mxPoint x="530" y="590" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+```
+
+**Trunk corridor width**: 50-80px between source containers and target containers. Each edge occupies a "lane" offset by 15px from its neighbor.
+
 #### When to use waypoints vs auto-routing:
 
 | Scenario | Approach |

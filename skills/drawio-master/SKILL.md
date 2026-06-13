@@ -39,6 +39,8 @@
 7. **NO ROUNDED EDGES** — All edges: `rounded=0`. No exceptions.
 8. **EVERY EDGE MUST HAVE `edgeStyle=orthogonalEdgeStyle`** — Omitting causes diagonal lines that cut across containers. No exceptions.
 9. **ACCOUNTS USE AWS GROUPS** — Never use `rounded=1;whiteSpace=wrap` for accounts. Always `shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_account`.
+10. **NO XML COMMENTS** — `<!-- -->` comments are strictly forbidden in output XML. They waste tokens, can cause parse errors, and serve no purpose. (Official draw.io rule)
+11. **ALWAYS `html=1`** — Include `html=1` in EVERY cell style string. Without it, HTML entities in labels render as literal text. (Official draw.io best practice)
 
 ---
 
@@ -831,6 +833,10 @@ Shall I proceed?
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
+        <!-- NOTE: Do NOT include XML comments in actual output. -->
+        <!-- This template shows PHASES for documentation only. -->
+        <!-- In real output: just mxCell elements, no comments. -->
+
         <!-- ═══ PHASE 1: CONTAINERS (outermost → innermost) ═══ -->
         <!-- Account groups, Region groups, VPC groups -->
 
@@ -858,6 +864,8 @@ Shall I proceed?
 - [ ] Edge `strokeColor` matches source service category color
 - [ ] Cross-account edges (2+ hops) have waypoints or exit/entry points
 - [ ] No `<br>` or HTML tags in value — use `&#xa;`
+- [ ] `html=1` present in EVERY cell style
+- [ ] NO XML comments (`<!-- -->`) in output — zero comments
 - [ ] No text overlap (check geometry — vertical gap ≥ 161px between icon centers)
 - [ ] **ALL icons inside parent container bounds** (icon_x+78 ≤ container_width-81, icon_y+108 ≤ container_height-50)
 - [ ] **Container sized correctly** (use formula from GEOMETRY section)
@@ -925,6 +933,8 @@ If ANY of these appear in your output, the diagram FAILS:
 ❌ Any EDGE style not matching the 3 allowed patterns          ← only Data Flow / Dependency / Hierarchy
 ❌ Edge WITHOUT edgeStyle=orthogonalEdgeStyle             ← causes diagonal lines across containers
 ❌ Edge with curved/elbow routing                         ← only orthogonal allowed
+❌ <!-- XML comments -->                                   ← strictly forbidden (official draw.io rule)
+❌ Any cell style missing html=1                           ← always include html=1
 ```
 
 ---

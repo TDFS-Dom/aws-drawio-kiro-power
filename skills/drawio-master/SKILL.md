@@ -371,7 +371,8 @@ Shall I proceed?
 ```
 1. Read: templates/{template_id}/sheets_index.md
 2. Read: templates/{template_id}/sheets/{NN}_{slug}.md   ← THE STYLES
-3. Read: references/acb-standards.md                      ← Anti-patterns
+3. Read: references/draw-patterns.md                      ← GENERIC PATTERNS (edges, containers, icons, text)
+4. Read: references/acb-standards.md                      ← Anti-patterns
 ```
 
 **After reading, output:**

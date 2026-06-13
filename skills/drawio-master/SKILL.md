@@ -28,24 +28,24 @@
 
 ---
 
-## 🚨 MANDATORY RULES (14 rules — sorted by violation frequency, highest first)
+## 🚨 MANDATORY RULES (14 rules — sorted by priority)
 
-### Priority A: Visual Quality (AI violates MOST OFTEN — check these first)
+### Priority A: Visual Quality (most critical — AI violates most often)
 1. **LINES MUST NOT CROSS ICONS** — If any shape sits on the edge path → waypoints to route around. Clearance 20px.
 2. **LINES MUST NOT CROSS FOREIGN BOUNDARIES** — A line MUST NEVER pass through a container it doesn't belong to. Route around.
 3. **LINES MUST HAVE CLEAR DIRECTION** — Every data-flow line must have arrowhead. Bidirectional explicitly uses `endArrow=none`.
 4. **ACCOUNTS USE AWS GROUPS** — Never use `rounded=1;whiteSpace=wrap` for accounts. Always `shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_account`.
 5. **NO STYLE INVENTION** — If you write a container or icon style not found in a sheet file, it's a bug.
 
-### Priority B: XML Structure (break = file won't render correctly)
-6. **EVERY EDGE MUST HAVE `edgeStyle=orthogonalEdgeStyle`** — Omitting causes diagonal lines across containers.
-7. **NO ROUNDED EDGES** — All edges: `rounded=0`. No exceptions.
-8. **XML WRITE ORDER** — Containers → Edges → Shapes. Always.
-9. **NO XML COMMENTS** — `<!-- -->` comments are strictly forbidden in output. (Official draw.io rule)
-10. **ALWAYS `html=1`** — Include `html=1` in EVERY cell style string. (Official draw.io best practice)
+### Priority B: Style Source (wrong styles = wrong visual output)
+6. **SHEET FILE IS LAW** — Every container/icon style MUST come from `templates/{id}/sheets/{NN}_{slug}.md`. **Exception for edges**: Edge base pattern is universal — colors from `references/draw-patterns.md`.
 
-### Priority C: Style Source (break = wrong visual output)
-11. **SHEET FILE IS LAW** — Every container/icon style MUST come from `templates/{id}/sheets/{NN}_{slug}.md`. **Exception for edges**: Edge base pattern is universal — colors from `references/draw-patterns.md`.
+### Priority C: XML Structure (break = file won't render correctly)
+7. **EVERY EDGE MUST HAVE `edgeStyle=orthogonalEdgeStyle`** — Omitting causes diagonal lines across containers.
+8. **NO ROUNDED EDGES** — All edges: `rounded=0`. No exceptions.
+9. **XML WRITE ORDER** — Containers → Edges → Shapes. Always.
+10. **NO XML COMMENTS** — `<!-- -->` comments are strictly forbidden in output. (Official draw.io rule)
+11. **ALWAYS `html=1`** — Include `html=1` in EVERY cell style string. (Official draw.io best practice)
 
 ### Priority D: Pipeline Discipline (break = workflow failure)
 12. **SERIAL EXECUTION** — Steps in order. No skipping.

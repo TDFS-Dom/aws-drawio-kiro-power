@@ -701,6 +701,7 @@ If unclear → ask user.
 [Accounts]        {list}
 [Services]        {list — mxgraph.aws4.{name} verified}
 [Flow Direction]  {direction}
+[Density]         {Low (≤5 icons) / Medium (6-15) / High (16+)}
 [Output File]     {filename.drawio}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

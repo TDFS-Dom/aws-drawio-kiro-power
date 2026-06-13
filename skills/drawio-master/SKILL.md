@@ -320,21 +320,27 @@ Container minimum width  = (number_of_icons_horizontal × icon_width) + (gaps ×
 Container minimum height = (number_of_icons_vertical × (icon_height + label_height)) + (gaps × (n-1)) + (padding_top + padding_bottom)
 ```
 
-### Sizing Constants (from templates — measured from 836 containers + 1064 icons)
+### Sizing Constants (from templates — measured from 836 containers + 1064 icons across 94 sheets)
+
+**3 density levels** (spacing changes based on diagram complexity):
+
+| Density | Icons | H-Gap | V-Gap | Left Pad | Top Pad | Use When |
+|---|---|---|---|---|---|---|
+| **Low** (1-5 icons) | ≤5 | 25 px | 56 px | 80 px | 40 px | Simple: single service, KMS reference |
+| **Medium** (6-15 icons) | 6-15 | 52 px | 65 px | 74 px | 98 px | Standard: account with services |
+| **High** (16+ icons) | ≥16 | 63 px | 52 px | 75 px | 60 px | Complex: HLD, multi-VPC, full arch |
+
+**Pick density at Step 2** based on total icon count in Design Spec.
 
 | Element | Size | Notes |
 |---|---|---|
 | AWS resource icon | 78×78 px | Most common (203x used). Also: 60×60, 50×50 |
+| Sub-resource icon | 50×50 px | Endpoints, NAT GW, IGW (176x used) |
+| Small icon | 40×40 px | DX, VPN, Lambda (inside containers) |
 | Icon label height | 30 px | Below icon (`verticalLabelPosition=bottom`) |
 | Icon total height (icon + label) | **108 px** | 78 + 30 |
-| Container top padding | **41 px** | Median from 400 measurements |
-| Container left padding | **50 px** | Median from 397 measurements |
-| Container right margin | **81 px** | Median |
-| Container bottom margin | **50 px** | Median |
-| Gap between icons (horizontal) | **60 px** | Median from 245 measurements |
-| Gap between icons (vertical) | **53 px** | Median from 171 measurements |
 
-> Full data: `references/geometry-rules.md` (extracted from `draw-patterns/`)
+> Full data: `references/geometry-rules.md` (extracted from `draw-patterns/` — 94 sheets)
 
 ### Container Sizing Formula
 

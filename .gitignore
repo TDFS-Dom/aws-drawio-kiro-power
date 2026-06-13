@@ -9,3 +9,8 @@ node_modules/
 # Generated outputs (user-specific)
 projects/*
 !projects/.gitkeep
+
+# Source pattern files (large .drawio, keep local only)
+draw-patterns/
+drawio-template/
+ppt-master/

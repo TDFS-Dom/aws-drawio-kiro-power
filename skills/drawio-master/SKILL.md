@@ -320,55 +320,59 @@ Container minimum width  = (number_of_icons_horizontal × icon_width) + (gaps ×
 Container minimum height = (number_of_icons_vertical × (icon_height + label_height)) + (gaps × (n-1)) + (padding_top + padding_bottom)
 ```
 
-### Sizing Constants (from templates)
+### Sizing Constants (from templates — measured from 836 containers + 1064 icons)
 
 | Element | Size | Notes |
 |---|---|---|
-| AWS resource icon | 78×78 px | Standard. Use 50×50 for compact |
+| AWS resource icon | 78×78 px | Most common (203x used). Also: 60×60, 50×50 |
 | Icon label height | 30 px | Below icon (`verticalLabelPosition=bottom`) |
 | Icon total height (icon + label) | **108 px** | 78 + 30 |
-| Container top padding (for title) | **40 px** | Account/VPC title takes 40px |
-| Container side padding | **30 px** | Left + right |
-| Gap between icons (horizontal) | **40 px** minimum | Never less |
-| Gap between icons (vertical) | **30 px** minimum | Between icon+label groups |
+| Container top padding | **41 px** | Median from 400 measurements |
+| Container left padding | **50 px** | Median from 397 measurements |
+| Container right margin | **81 px** | Median |
+| Container bottom margin | **50 px** | Median |
+| Gap between icons (horizontal) | **60 px** | Median from 245 measurements |
+| Gap between icons (vertical) | **53 px** | Median from 171 measurements |
+
+> Full data: `references/geometry-rules.md` (extracted from `draw-patterns/`)
 
 ### Container Sizing Formula
 
 **1 icon inside container:**
 ```
-width  = 30 (left) + 78 (icon) + 30 (right) = 138 px minimum
-height = 40 (title) + 78 (icon) + 30 (label) + 20 (bottom) = 168 px minimum
+width  = 50 (left) + 78 (icon) + 81 (right) = 209 px minimum
+height = 41 (title) + 78 (icon) + 30 (label) + 50 (bottom) = 199 px minimum
 ```
 
 **3 icons horizontal:**
 ```
-width  = 30 + 78 + 40 + 78 + 40 + 78 + 30 = 374 px minimum
-height = 40 + 78 + 30 + 20 = 168 px minimum
+width  = 50 + 78 + 60 + 78 + 60 + 78 + 81 = 485 px minimum
+height = 41 + 78 + 30 + 50 = 199 px minimum
 ```
 
 **3 icons vertical:**
 ```
-width  = 30 + 78 + 30 = 138 px minimum
-height = 40 + (78+30) + 30 + (78+30) + 30 + (78+30) + 20 = 444 px minimum
+width  = 50 + 78 + 81 = 209 px minimum
+height = 41 + (78+30) + 53 + (78+30) + 53 + (78+30) + 50 = 521 px minimum
 ```
 
 ### Icon Placement Rules
 
 **Relative to parent container (when `parent=container_id`):**
 ```xml
-<!-- First icon: x=30, y=40 (below title) -->
+<!-- First icon: x=50, y=41 (below title) -->
 <mxCell ... parent="container-id">
-  <mxGeometry x="30" y="40" width="78" height="78" as="geometry" />
+  <mxGeometry x="50" y="41" width="78" height="78" as="geometry" />
 </mxCell>
 
-<!-- Second icon horizontal: x=148, y=40 (30+78+40=148) -->
+<!-- Second icon horizontal: x=188, y=41 (50+78+60=188) -->
 <mxCell ... parent="container-id">
-  <mxGeometry x="148" y="40" width="78" height="78" as="geometry" />
+  <mxGeometry x="188" y="41" width="78" height="78" as="geometry" />
 </mxCell>
 
-<!-- Second icon vertical: x=30, y=148 (40+78+30=148) -->
+<!-- Second icon vertical: x=50, y=202 (41+78+30+53=202) -->
 <mxCell ... parent="container-id">
-  <mxGeometry x="30" y="148" width="78" height="78" as="geometry" />
+  <mxGeometry x="50" y="202" width="78" height="78" as="geometry" />
 </mxCell>
 ```
 
@@ -378,10 +382,10 @@ height = 40 + (78+30) + 30 + (78+30) + 30 + (78+30) + 20 = 444 px minimum
 
 **Rules:**
 1. Icon label = 30px height reserved BELOW icon
-2. Next icon starts at: `previous_icon_y + 78 (icon) + 30 (label) + 30 (gap) = +138px`
+2. Next icon starts at: `previous_icon_y + 78 (icon) + 30 (label) + 53 (gap) = +161px`
 3. NEVER place icon at `previous_y + 100` — too close, labels WILL overlap
-4. Safe vertical spacing between icon centers: **138px minimum** (78+30+30)
-5. Safe horizontal spacing between icon centers: **118px minimum** (78+40)
+4. Safe vertical spacing between icon centers: **161px minimum** (78+30+53)
+5. Safe horizontal spacing between icon centers: **138px minimum** (78+60)
 
 ### Container Boundary Check (MANDATORY before finalizing)
 
@@ -410,17 +414,19 @@ Check vertical:   140 + 78 + 30 = 248 > 200 ❌ OVERFLOW! → reduce icon y or i
 3. If text is too long → use `&#xa;` to wrap, or reduce fontSize
 4. External annotations (outside all containers) → use `parent="1"` (root level)
 
-### Account Container Minimum Sizes (from reference diagrams)
+### Account Container Minimum Sizes (from 836 actual containers)
 
 | Content | Minimum Width | Minimum Height |
 |---|---|---|
-| 1 service icon | 200 | 180 |
-| 2 icons horizontal | 350 | 180 |
-| 3 icons horizontal | 500 | 180 |
-| 2 icons vertical | 200 | 320 |
-| 3 icons vertical | 200 | 460 |
-| Region + 2 icons | 400 | 350 |
-| VPC + subnets + icons | 500 | 400 |
+| 1 service icon | 209 | 199 |
+| 2 icons horizontal | 347 | 199 |
+| 3 icons horizontal | 485 | 199 |
+| 2 icons vertical | 209 | 360 |
+| 3 icons vertical | 209 | 521 |
+| Region + 2 icons | 450 | 370 |
+| VPC + subnets + icons | 520 | 420 |
+
+> Actual account sizes from templates: min=160×80, avg=615×412, max=2110×1510
 
 ---
 
@@ -549,8 +555,8 @@ Shall I proceed?
 - [ ] Edge `strokeColor` matches source service category color
 - [ ] Cross-account edges (2+ hops) have waypoints or exit/entry points
 - [ ] No `<br>` or HTML tags in value — use `&#xa;`
-- [ ] No text overlap (check geometry — vertical gap ≥ 138px between icon centers)
-- [ ] **ALL icons inside parent container bounds** (icon_x+78 ≤ container_width-30, icon_y+108 ≤ container_height-20)
+- [ ] No text overlap (check geometry — vertical gap ≥ 161px between icon centers)
+- [ ] **ALL icons inside parent container bounds** (icon_x+78 ≤ container_width-81, icon_y+108 ≤ container_height-50)
 - [ ] **Container sized correctly** (use formula from GEOMETRY section)
 
 ✅ XML written → Step 5.
@@ -577,8 +583,8 @@ python3 ${SKILL_DIR}/scripts/validate_drawio.py <file.drawio>
 | 5 | No `shape=document/hexagon/cylinder3` | Using generic shapes |
 | 6 | No invented colors | Using `#dae8fc`, `#d5e8d4` |
 | 7 | Z-order: containers → edges → shapes | Mixing order |
-| 8 | No text overlap | Icons vertical gap < 138px |
-| 9 | Containers enclose children | icon_x+78 > container_width |
+| 8 | No text overlap | Icons vertical gap < 161px |
+| 9 | Containers enclose children | icon_x+78 > container_width-81 |
 | 10 | Edge strokeColor matches source category | Wrong color for flow type |
 | 11 | **Icons inside bounds** | icon bleeds outside container |
 | 12 | **Labels don't overlap icons below** | Vertical spacing too tight |

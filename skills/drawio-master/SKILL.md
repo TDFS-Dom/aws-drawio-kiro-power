@@ -306,7 +306,95 @@ Auto-route. No waypoints needed unless containers between them.
 [S3] ──┘     entryY=0.8
 ```
 - Each source enters target at different Y
-- Never merge 2 edges into same entry point
+- **If sources are same flow type → MERGE into shared segment** (see MERGE RULE below)
+
+---
+
+### 🚨 MERGE RULE (prevents line bottleneck / spaghetti)
+
+**Problem from screenshot**: Multiple parallel lines running same direction = visual clutter ("cable bundle" / nút thắt).
+
+**Solution**: When 2+ edges of SAME color share the SAME destination → merge into a shared vertical segment, then 1 line goes to target.
+
+```
+❌ BAD (4 separate parallel lines — spaghetti):
+[S1] ─────────────────────→ [Target]
+[S2] ─────────────────────→ [Target]
+[S3] ─────────────────────→ [Target]
+[S4] ─────────────────────→ [Target]
+
+✅ GOOD (merge at junction, 1 shared segment to target):
+[S1] ──┐
+[S2] ──┤  junction     1 shared line
+[S3] ──┼─────────────────────→ [Target]
+[S4] ──┘
+```
+
+**When to MERGE:**
+- 2+ sources going to SAME target (or same target container)
+- Lines would run parallel >100px
+- Lines are SAME color and SAME type (all solid, all same strokeWidth)
+
+**When NOT to merge:**
+- Sources go to DIFFERENT targets → keep separate (use offset lanes)
+- Lines are DIFFERENT colors (different flow types)
+- Lines are different types (solid vs dashed)
+
+**Implementation**: All edges target same cell ID + use same trunk X → draw.io renders shared segment as 1 visual line.
+
+```xml
+<!-- S1 → Target: trunk at x=450 -->
+<mxCell id="e-s1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#CD2264;" edge="1" parent="1" source="s1" target="target-1">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="450" y="100" />
+      <mxPoint x="450" y="300" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+
+<!-- S2 → SAME Target: SAME trunk X=450 (visually merges) -->
+<mxCell id="e-s2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#CD2264;" edge="1" parent="1" source="s2" target="target-1">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="450" y="250" />
+      <mxPoint x="450" y="300" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+```
+
+---
+
+### 🚨 LINES MUST NOT CROSS THROUGH ICONS/SHAPES
+
+**Rule**: Before writing each edge, trace the path mentally. If ANY icon or shape sits on that path → add waypoints to route AROUND it.
+
+**Clearance**: Minimum 20px from any shape boundary.
+
+```
+❌ BAD (line cuts through icon B):
+[A] ──────── ✕ [B] ──────→ [C]
+
+✅ GOOD (routes around B with clearance):
+[A] ──┐                ┌──→ [C]
+      │    [B]         │
+      └────────────────┘   (20px below B)
+```
+
+```xml
+<!-- Route around obstacle -->
+<mxCell id="e-around" style="edgeStyle=orthogonalEdgeStyle;rounded=0;..." edge="1" parent="1" source="a" target="c">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="100" y="250" />
+      <mxPoint x="400" y="250" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+```
+
+---
 
 #### Case 4: Many-to-Many (trunk corridor) — MOST COMPLEX
 ```

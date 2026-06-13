@@ -92,6 +92,8 @@ Every AWS service icon MUST use this pattern:
 
 ## WHAT EDGES LOOK LIKE (MANDATORY)
 
+> **Full reference**: `references/line-drawing-rules.md` — 14 parts, 949-edge research basis, 15 edge types, 3 special types, routing cases, merge techniques, checklist. Read it before drawing any edges.
+
 ### 🚨 ABSOLUTE RULE: `edgeStyle=orthogonalEdgeStyle` on EVERY edge
 
 **ALL edges MUST include `edgeStyle=orthogonalEdgeStyle`** — this ensures orthogonal routing (right-angle turns). Without it, draw.io uses direct/straight lines that cut diagonally across containers.
@@ -322,134 +324,15 @@ Auto-route. No waypoints needed unless containers between them.
 
 ---
 
-### 🚨 3 MERGE TECHNIQUES (prevents spaghetti / nút thắt)
+### Line Routing & Merge Techniques
 
-Choose technique based on NUMBER OF SOURCES merging:
-
-| Sources | Technique | When |
-|---|---|---|
-| 2-5 | **Junction Point** | Small fan-in, clear origin visible |
-| 6+ | **Bus Line** | Many sources, need clean vertical/horizontal collector |
-| Any (HLD) | **Grouped Arrow** | High-level overview, detail not needed per-line |
-
----
-
-#### Technique 1: Junction Point (2-5 sources → 1 target)
-
-Sources merge at a single waypoint coordinate, then 1 shared segment goes to target.
-
-```
-[S1] ──┐
-[S2] ──┤  ← junction at x=450
-[S3] ──┼──────────────→ [Target]
-[S4] ──┘
-```
-
-- All edges share SAME trunk X (or Y for horizontal merge)
-- Same `target` ID → draw.io overlaps the shared segment visually
-- Each source's waypoint converges to same coordinate
-
-```xml
-<!-- S1 → Target: junction at x=450 -->
-<mxCell id="e-s1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#CD2264;" edge="1" parent="1" source="s1" target="target-1">
-  <mxGeometry relative="1" as="geometry">
-    <Array as="points">
-      <mxPoint x="450" y="100" />
-      <mxPoint x="450" y="300" />
-    </Array>
-  </mxGeometry>
-</mxCell>
-
-<!-- S2 → SAME Target: SAME junction X=450 -->
-<mxCell id="e-s2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#CD2264;" edge="1" parent="1" source="s2" target="target-1">
-  <mxGeometry relative="1" as="geometry">
-    <Array as="points">
-      <mxPoint x="450" y="200" />
-      <mxPoint x="450" y="300" />
-    </Array>
-  </mxGeometry>
-</mxCell>
-```
-
----
-
-#### Technique 2: Bus Line (6+ sources → 1 or few targets)
-
-A dedicated vertical "bus" line collects all sources, then dispatches to targets. Sources connect horizontally to the bus, bus runs vertically, targets branch off horizontally.
-
-```
-[S1] ────┐
-[S2] ────┤
-[S3] ────┤
-[S4] ────┤  ║ BUS (vertical line at x=500)
-[S5] ────┤  ║
-[S6] ────┤  ║
-[S7] ────┘  ║
-            ╠════→ [Target 1]
-            ╠════→ [Target 2]
-            ╚════→ [Target 3]
-```
-
-**Implementation**: Use a visible vertical line as a "bus" element:
-```xml
-<!-- Bus line (visual element, not an edge) -->
-<mxCell id="bus-1" value="" style="endArrow=none;html=1;strokeWidth=4;strokeColor=#CD2264;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1">
-  <mxGeometry relative="1" as="geometry">
-    <mxPoint x="500" y="80" as="sourcePoint" />
-    <mxPoint x="500" y="600" as="targetPoint" />
-  </mxGeometry>
-</mxCell>
-
-<!-- Sources connect TO bus (short horizontal stubs) -->
-<mxCell id="e-s1-bus" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#CD2264;entryX=0;entryY=0.1;" edge="1" parent="1" source="s1" target="bus-1">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
-
-<!-- Bus dispatches TO targets (horizontal branches) -->
-<mxCell id="e-bus-t1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#CD2264;" edge="1" parent="1" source="bus-1" target="target-1">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
-```
-
----
-
-#### Technique 3: Grouped Arrow (HLD / high-level overview)
-
-For high-level diagrams where individual lines would clutter — use ONE thick arrow representing the aggregate flow, with a label describing what flows through it.
-
-```
-┌─────────────┐                    ┌─────────────┐
-│  Source      │                    │  Target     │
-│  Accounts   │ ════════════════►  │  Log Archive│
-│  (All)      │   "All Logs"       │  Account    │
-└─────────────┘                    └─────────────┘
-```
-
-**Implementation**: Single thick edge with descriptive label:
-```xml
-<mxCell id="e-grouped" value="VPC Flow + DNS + TGW Logs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=4;strokeColor=#8C4FFF;fontSize=10;fontStyle=1;" edge="1" parent="1" source="src-accounts" target="tgt-logarchive">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
-```
-
-**When to use Grouped Arrow:**
-- HLD (High-Level Design) diagrams where detail is zoomed out
-- Executive overview — audiences don't need per-service lines
-- When 5+ individual lines would make the diagram unreadable
-- Label MUST describe what's aggregated: "All Security Findings", "VPC + DNS + TGW Logs"
-
----
-
-### MERGE DECISION TABLE
-
-| Condition | Technique |
-|---|---|
-| 2-5 sources, same color, same target | **Junction Point** |
-| 6+ sources, same color, same target area | **Bus Line** |
-| HLD/overview, many flows abstracted | **Grouped Arrow** |
-| Sources → DIFFERENT targets | **Do NOT merge** (use offset lanes) |
-| Different colors (different flow types) | **Do NOT merge** (keep separate) |
-| Different line types (solid vs dashed) | **Do NOT merge** |
+> **Full details**: `references/line-drawing-rules.md` (Parts 7-9)
+> 
+> Quick summary:
+> - **Junction Point** (2-5 sources → same target): merge at shared waypoint X
+> - **Bus Line** (6+ sources): dedicated vertical collector line
+> - **Grouped Arrow** (HLD): 1 thick labeled line for aggregate flow
+> - **Do NOT merge** if: different targets, different colors, or solid vs dashed
 
 ---
 
@@ -782,7 +665,8 @@ Shall I proceed?
 1. Read: templates/{template_id}/sheets_index.md
 2. Read: templates/{template_id}/sheets/{NN}_{slug}.md   ← THE STYLES
 3. Read: references/draw-patterns.md                      ← GENERIC PATTERNS (edges, containers, icons, text)
-4. Read: references/shared-standards.md                      ← Anti-patterns
+4. Read: references/line-drawing-rules.md                 ← LINE ROUTING (15 types, merge, waypoints, decision tree)
+5. Read: references/shared-standards.md                   ← Anti-patterns
 ```
 
 **After reading, output:**

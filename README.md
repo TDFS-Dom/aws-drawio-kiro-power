@@ -1,96 +1,164 @@
-# AWS Architecture Diagram Power for Kiro
+# Drawio Master — AI generates professional AWS architecture diagrams from requirements
 
-A Kiro Power that enables AI-assisted creation of professional AWS architecture diagrams in draw.io XML format. Focused exclusively on AWS — multi-account, multi-region, Well-Architected patterns at Solutions Architect grade quality.
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-## What is a Kiro Power?
+English | [Tiếng Việt](#)
 
-Kiro Powers are structured prompts and reference materials that extend Kiro's capabilities in specific domains. When this Power is loaded, Kiro gains the ability to produce valid draw.io XML for AWS architecture diagrams that can be opened directly in [draw.io](https://app.diagrams.net/).
+> **This is a tool, not a wishing well.**
+>
+> Don't expect it to hand you a finished, perfect diagram in one shot. Its real value
+> is taking most of the tedious draw.io XML work off your plate; the polishing that's
+> left is yours — a natively editable .drawio file exists precisely so you can keep
+> working on it in draw.io Desktop, not a flat image you can't touch.
 
-## Features
+## What it does
 
-- **AWS-focused** — All AWS service icons, account containers, VPC/subnet groups
-- **SA-grade quality** — Multi-account layouts, Well-Architected patterns, proper data flow
-- **Native draw.io XML** — Files open directly in draw.io desktop or web app
-- **Multi-account patterns** — Landing Zone, Control Tower, Organizations layouts
-- **Multi-region DR** — Active-Standby, Pilot Light, Warm Standby patterns
-- **Validation rules** — Arrow routing, z-order, icon consistency checks
-- **A4/document ready** — Sized for Word/PDF export
+Drop in your architecture requirements and get back a real draw.io file: directly
+editable, with proper AWS icons, account containers, VPC groups, color-coded
+connections, and matching your organisation's existing diagram standards exactly.
+
+**Drawio Master is different:**
+
+- **Real draw.io XML** — if a file can't be opened and edited in draw.io, it shouldn't be called a diagram. Every element is directly clickable and editable
+- **Template-matched** — diagrams match your existing production standards (4 reference files, 128+ pages of ground truth)
+- **Design Spec first** — AI confirms scope, services, and layout BEFORE generating anything
+- **No invention** — only styles extracted from your reference templates, never creative additions
+- **Data stays local** — everything runs in your IDE, no uploads to external servers
 
 ## Quick Start
 
-### For Kiro Users
+### 1. Prerequisites
 
-1. Add the Power:
-   - Go to Powers > Add Custom Power > import from URL, folder, or build your own
-   - Select git URL or local folder where you cloned this repo
+- [Kiro IDE](https://kiro.dev/) installed
+- This power added to Kiro (via git URL or local folder)
 
-2. Select the AWS Architecture Diagrams Power, click Try Power
+### 2. Set Up
 
-3. In Kiro Chat, ask for AWS diagrams:
-
-```
-Create an AWS architecture diagram showing a 3-tier web application 
-with ALB, ECS Fargate, and Aurora across two availability zones 
-in ap-southeast-1.
+```bash
+git clone https://github.com/TDFS-Dom/aws-drawio-kiro-power.git
 ```
 
-## Hints & Tips
+Or add directly in Kiro: Powers → Add Custom Power → Git URL.
 
-- Discuss architecture requirements first, ask for a text/mermaid wireframe, iterate until the design fits, then ask Kiro to generate the draw.io file
-- Specify the diagram type: "Executive Overview", "Network Architecture", "Security Architecture", "Data Flow", or "DR/Multi-Region"
-- Name your AWS services explicitly for accurate icon selection
-- Request legends for color-coded diagrams
+### 3. Create
+
+Tell Kiro what diagram you need:
+
+```
+You: Vẽ diagram network connectivity từ on-prem qua Transit Gateway tới các VPCs
+
+AI: 📐 DESIGN SPEC
+    [Diagram Type]    Network Design
+    [Template]        ACB_Networking_diagrams .drawio (HLD sheet)
+    [Canvas]          850×1100, grid=10
+    [Scope]           On-prem DC → Direct Connect → Transit Gateway → VPCs
+    [Accounts]        Network Account
+    [Services]        Transit Gateway, Direct Connect, VPC, NAT Gateway, IGW
+    [Flow Direction]  Left→Right (On-prem → AWS)
+    [Edge Style]      Orange (#D79B00) = DX connections, Green (#82B366) = Prod
+    [Pages]           1
+    [Output File]     ACB_Network_HLD.drawio
+
+    Shall I proceed with this spec?
+
+You: Go
+
+AI: ✅ Diagram Complete — projects/ACB_Network_HLD.drawio
+```
+
+**Output:** `.drawio` file saved to `projects/`. Open with draw.io Desktop (recommended).
+
+### 4. Opening Generated Files
+
+- [draw.io Desktop](https://www.diagrams.net/) (recommended)
+- [draw.io Web](https://app.diagrams.net/)
+- VS Code with [Draw.io Integration](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio) extension
+
+## Pipeline
+
+The AI follows a strict serial pipeline — no shortcuts, no speculative execution:
+
+```
+Step 1: Request Analysis          — Parse intent, identify template
+Step 2: Design Spec Confirmation  — ⛔ BLOCKING — user must confirm
+Step 3: Reference Loading         — Load template styles
+Step 4: XML Generation            — Hand-write draw.io XML
+Step 5: Validation                — 8-point quality check
+Step 6: Output                    — Save .drawio file
+```
+
+Full pipeline definition: `skills/drawio-master/SKILL.md`
+
+## Reference Templates
+
+4 production-grade diagrams serve as the **single source of truth** for all generated diagrams:
+
+| Template | Type | Pages | Use When |
+|---|---|---|---|
+| `ACB _ OU Design 1.drawio` | OU Hierarchy | 1 | Organization structure, OU tree |
+| `ACB-SWO_AWS LZ_Security and IAM Design_20260317.drawio` | Security | 10 | Security delegation, IAM, logging |
+| `ACB_Networking_diagrams .drawio` | Networking | 42 | VPC, TGW, routing, connectivity |
+| `AFT.drawio` | Process/Flow | 42 | Account vending, CI/CD, automation |
 
 ## Repository Structure
 
 ```
-aws-drawio/
-├── POWER.md                                    # Main Power definition (required)
-├── README.md                                   # This file
-├── icon.svg                                    # Power icon (128x128)
-└── steering/
-    ├── aws-architecture-diagram-rules.md       # SA-grade layout & validation rules
-    ├── architecture-patterns.md                # Common diagram layouts
-    ├── branding.md                             # Company colour customisation
-    ├── cloud-icons.md                          # AWS icon reference (complete)
-    └── style-guide.md                          # Shapes, effects, and styling
+aws-drawio-kiro-power/
+├── skills/drawio-master/
+│   ├── SKILL.md                     # Core pipeline definition
+│   ├── references/                  # Technical docs (AI reads on-demand)
+│   │   ├── acb-standards.md         # Extracted styles from templates
+│   │   ├── aws-icons.md             # AWS icon catalog
+│   │   ├── validation-rules.md      # Post-draw validation
+│   │   ├── branding.md              # Company colours
+│   │   ├── architecture-patterns.md # Layout patterns
+│   │   └── style-guide.md           # Extended styling
+│   ├── templates/                   # Reference .drawio files (ground truth)
+│   │   ├── templates_index.md
+│   │   └── *.drawio (4 files)
+│   └── workflows/                   # Standalone sub-workflows
+│       └── design-spec.md
+├── projects/                        # Generated diagram outputs
+├── examples/                        # Example outputs
+├── docs/                            # Documentation
+├── POWER.md                         # Kiro Power entry point
+├── README.md                        # This file
+├── icon.svg
+└── .gitignore
 ```
 
-## Example Outputs
+## Documentation
 
-- **Multi-account Landing Zone** — Organizations, Control Tower, SCPs, account structure
-- **Three-tier architecture** — ALB → ECS/EKS → RDS/Aurora with Multi-AZ
-- **Serverless** — API Gateway → Lambda → DynamoDB with EventBridge
-- **Data Lake** — S3 → Glue → Athena → QuickSight pipeline
-- **Multi-region DR** — Active-Standby with Route 53 failover
-- **Network architecture** — Transit Gateway, Direct Connect, VPC peering
-- **Security architecture** — GuardDuty, Security Hub, KMS, WAF layers
-- **CI/CD pipeline** — CodePipeline → CodeBuild → CodeDeploy → ECS
+| | Doc | Description |
+|---|---|---|
+| 📘 | `skills/drawio-master/SKILL.md` | Core workflow and rules |
+| 📐 | `skills/drawio-master/templates/templates_index.md` | Template selection guide |
+| 🎨 | `skills/drawio-master/references/acb-standards.md` | Visual standards reference |
+| 🔍 | `skills/drawio-master/references/aws-icons.md` | AWS icon catalog |
+| ✅ | `skills/drawio-master/references/validation-rules.md` | Validation checklist |
 
-## Customising for Your Organisation
+## The person using it matters more
 
-### Adding Your Brand Colours
+The reference diagrams were made by experienced Solutions Architects. With the same
+draw.io, an SA can produce something stunning while most people only ever touch basic
+shapes. The difference isn't the tool, it's the person using it. If you can't get
+there yet, it's most likely that you haven't learned the workflow — start with the
+pipeline in SKILL.md and the template files.
 
-Edit `steering/branding.md` to define your organisation's colours. The AWS diagram will use these for headers, footers, and branded zones.
+## Contributing
 
-### Adding Company-Specific Patterns
+Issues and PRs welcome. When contributing:
+- Follow existing template styles — no creative additions
+- Test with draw.io Desktop before submitting
+- Keep reference files as ground truth
 
-Add your standard architecture patterns to `steering/architecture-patterns.md`.
+## License
 
-## Opening Generated Files
-
-1. Kiro outputs a `.drawio` file
-2. Open with:
-   - [draw.io Desktop](https://www.diagrams.net/) (recommended)
-   - [draw.io Web](https://app.diagrams.net/)
-   - VS Code with [Draw.io Integration](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio) extension
-
-## Licence
-
-MIT — Use freely, attribution appreciated.
+[MIT](LICENSE) — Use freely, attribution appreciated.
 
 ## Acknowledgements
 
-- Based on [scarr05/claude-skills-pub](https://github.com/scarr05/claude-skills-pub/tree/main)
 - [draw.io / diagrams.net](https://www.diagrams.net/)
 - [AWS Architecture Icons](https://aws.amazon.com/architecture/icons/)
+- [awsfundamentals.com/aws-icons](https://awsfundamentals.com/aws-icons) — External SVG icon source
+- Inspired by [hugohe3/ppt-master](https://github.com/hugohe3/ppt-master) pipeline architecture

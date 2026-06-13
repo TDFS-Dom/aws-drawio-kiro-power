@@ -5,3 +5,7 @@
 .idea/
 .vscode/
 node_modules/
+
+# Generated outputs (user-specific)
+projects/*
+!projects/.gitkeep

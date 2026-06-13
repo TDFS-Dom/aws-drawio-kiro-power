@@ -288,6 +288,7 @@ Implementation: each edge shares a common X-coordinate for waypoints, offset by 
 | 1 | **One-to-One** | A → B (single connection) | No | No (auto-route) |
 | 2 | **One-to-Many** (fan-out) | KMS → 4 buckets | No | Yes (offset 20px per edge) |
 | 3 | **Many-to-One** (fan-in) | GuardDuty + Config → Security Hub | No | Yes (stagger entryY) |
+| 3b | **Bundled Parallel Merge** | VPC+DNS+TGW → 1 S3 bucket (corridor) | No | Yes (stagger 15px X + entryY) |
 | 4 | **Many-to-Many** | 3 accounts → 4 buckets | Yes | Yes (per-lane X, per-target Y) |
 | 5 | **Chain** | Pipeline → Build → Deploy | No | No (sequential) |
 | 6 | **Same-container** | Service → Service (same account) | No | No (auto-route) |
@@ -296,6 +297,7 @@ Implementation: each edge shares a common X-coordinate for waypoints, offset by 
 | 9 | **Bidirectional** | On-prem ↔ TGW | No | endArrow=none |
 | 10 | **Dependency** | KMS encrypts S3 | No | dashed, thin |
 | 11 | **Hub-spoke** | TGW ← many VPCs | No | Each spoke separate edge |
+| 12 | **Vertical Trunk + Branches** | Log sources → stacked S3 buckets | Yes (vertical) | Yes (shared X, branch per target Y) |
 
 #### Case 1: One-to-One
 ```

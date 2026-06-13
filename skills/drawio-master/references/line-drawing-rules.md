@@ -677,3 +677,347 @@ Cần vẽ 1 line →
   ├─ Networking topology/DNS → edgeStyle=none;curved=1
   └─ Mọi trường hợp khác → edgeStyle=orthogonalEdgeStyle
 ```
+
+
+---
+
+## PART 15: ADDITIONAL EDGE PATTERNS (từ production Log Aggregation diagrams)
+
+> **Research basis**: Visual analysis từ Security/IAM Log Aggregation sheet — pattern cross-account log delivery flow  
+> **Bổ sung**: 5 patterns chưa cover trong Part 1-14
+
+---
+
+### E16 — Vertical Sequential Dashed Arrow (sibling ordering)
+
+```
+edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#7AA116;dashed=1;dashPattern=3 3;
+```
+
+Dùng khi: Thể hiện **thứ tự / grouping** giữa sibling elements cùng level (ví dụ: 4 S3 buckets xếp dọc, arrow đi xuống giữa chúng).
+
+**Đặc điểm:**
+- `dashed=1` (KHÔNG solid — vì không phải data flow thực)
+- CÓ arrowhead (`endArrow=classic`, default) — thể hiện direction/order
+- `strokeWidth=1` (mỏng — phụ, không phải main flow)
+- Color = Storage category (`#7AA116`) vì targets là S3 buckets
+- Hướng: top → bottom (vertical chain)
+
+**Khác với E4 (Dependency):** E4 KHÔNG có arrowhead (`endArrow=none`). E16 CÓ arrowhead — thể hiện sequential ordering, không phải bidirectional dependency.
+
+```
+┌─────────┐
+│ Bucket 1 │
+└────┬────┘
+     │ ← E16 (dashed, có arrow, green)
+     ▼
+┌─────────┐
+│ Bucket 2 │
+└────┬────┘
+     │
+     ▼
+┌─────────┐
+│ Bucket 3 │
+└─────────┘
+```
+
+---
+
+### E12b — Intra-Account Security Data Flow (thick variant)
+
+```
+edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#C7131F;
+```
+
+Dùng khi: Active data flow giữa security services **trong cùng account** — ví dụ Security Hub → Kinesis Firehose, GuardDuty → Security Hub.
+
+**Khác với E12:**
+- E12 = `strokeWidth=1` (mỏng, cross-account thin path)
+- **E12b = `strokeWidth=2`** (dày, intra-account active pipeline)
+
+**Khi nào dùng E12 vs E12b:**
+| Scenario | Edge |
+|---|---|
+| GuardDuty finding → Security Hub (cùng account) | **E12b** (thick, active pipeline) |
+| Security Hub → Kinesis Firehose (cùng account) | **E12b** (thick, active pipeline) |
+| Security Hub (Security Acct) → S3 (Log Archive Acct) | E12 (thin) hoặc dùng trunk pattern |
+| Delegated admin reference | E13 (dashed, dependency) |
+
+---
+
+### Case 12: Vertical Trunk with Horizontal Branches
+
+**Pattern**: 1 edge (hoặc trunk corridor) chạy **VERTICAL** (top → bottom), tại mỗi "tầng" (account level) nó rẽ **HORIZONTAL** sang target.
+
+**Dùng khi**: Log aggregation — 1 source (Firehose/central service) delivers logs to multiple S3 buckets stacked vertically trong Log Archive Account.
+
+```
+                          │ ← Trunk (vertical)
+                          │
+    ┌─────────────┐       ├────→ [Bucket: Network Logs]
+    │ Member Acct │───────┤
+    └─────────────┘       │
+                          │
+    ┌─────────────┐       ├────→ [Bucket: Security Logs]
+    │ Security Acct│──────┤
+    └─────────────┘       │
+                          │
+    ┌─────────────┐       ├────→ [Bucket: CloudTrail Logs]
+    │ Audit Acct  │───────┤
+    └─────────────┘       │
+                          └────→ [Bucket: Config Logs]
+```
+
+**Implementation — 2 approaches:**
+
+#### Approach A: Shared X corridor (recommended for ≤5 branches)
+
+Mỗi source-to-target edge chia sẻ cùng X coordinate cho vertical segment:
+
+```xml
+<!-- Member Acct sources → Network Bucket: trunk at x=550 -->
+<mxCell id="e-member-netbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#8C4FFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="vpc-flow-logs" target="bucket-network">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="550" y="150" />
+      <mxPoint x="550" y="180" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+
+<!-- Security Acct Firehose → Security Bucket: trunk at x=550, branch tại y=350 -->
+<mxCell id="e-firehose-secbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#C7131F;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="kinesis-firehose" target="bucket-security">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="550" y="370" />
+      <mxPoint x="550" y="400" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+
+<!-- Audit Acct Trail → CloudTrail Bucket: trunk at x=565 (offset 15px), branch tại y=550 -->
+<mxCell id="e-trail-ctbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#BC1356;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="org-trail" target="bucket-cloudtrail">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="565" y="560" />
+      <mxPoint x="565" y="590" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+```
+
+**Rules cho Vertical Trunk:**
+1. Trunk X coordinate: đặt giữa source accounts (left) và target area (right) — thường 50-80px trước target column
+2. Mỗi edge offset 15px X từ nhau: x=550, x=565, x=580 (tránh overlap visual)
+3. Mỗi branch Y = target bucket Y center
+4. Color: theo category của SOURCE service (Networking=#8C4FFF, Security=#C7131F, Management=#BC1356)
+
+#### Approach B: Bus Line + spokes (for 6+ branches)
+
+Khi có 6+ branches từ trunk, dùng Bus Line (S3 pattern) làm visual trunk, rồi individual spokes:
+
+```xml
+<!-- Vertical bus: collector trunk -->
+<mxCell id="trunk-bus" value="" style="endArrow=none;html=1;strokeWidth=3;strokeColor=#CD2264;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1">
+  <mxGeometry relative="1" as="geometry">
+    <mxPoint x="550" y="100" as="sourcePoint" />
+    <mxPoint x="550" y="700" as="targetPoint" />
+  </mxGeometry>
+</mxCell>
+
+<!-- Spoke: trunk → Bucket 1 (horizontal branch) -->
+<mxCell id="spoke-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#CD2264;" edge="1" parent="1" source="trunk-bus" target="bucket-1">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+```
+
+---
+
+### Case 3b: Bundled Parallel Merge (N sources → 1 target, corridor style)
+
+**Pattern**: Nhiều edges từ N sources chạy **song song rất gần nhau** (bundled) rồi converge vào 1 target. Khác Case 3 (fan-in) ở chỗ các edges travel cùng path một đoạn dài trước khi vào target.
+
+**Dùng khi**: VPC Flow Logs + DNS Query Logs + TGW Flow Logs → cùng 1 S3 bucket. Các sources nằm cạnh nhau horizontal, target ở xa bên phải.
+
+```
+[VPC Flow] ──────┐
+                  ├══════════════════→ [S3 Bucket: Network Logs]
+[DNS Query] ─────┤  ← bundled corridor
+                  │
+[TGW Flow] ──────┘
+```
+
+**Implementation:**
+
+```xml
+<!-- Source 1 (top): VPC Flow Logs → Network Bucket -->
+<mxCell id="e-vpc-netbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#8C4FFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" edge="1" parent="1" source="vpc-flow-logs" target="bucket-network">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="420" y="130" />
+      <mxPoint x="420" y="155" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+
+<!-- Source 2 (middle): DNS Query Logs → Network Bucket -->
+<mxCell id="e-dns-netbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#8C4FFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="dns-query-logs" target="bucket-network">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="435" y="170" />
+      <mxPoint x="435" y="175" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+
+<!-- Source 3 (bottom): TGW Flow Logs → Network Bucket -->
+<mxCell id="e-tgw-netbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#8C4FFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" edge="1" parent="1" source="tgw-flow-logs" target="bucket-network">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="450" y="210" />
+      <mxPoint x="450" y="195" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+```
+
+**Rules cho Bundled Parallel Merge:**
+1. Tất cả edges CÙNG MÀU (cùng category) — vì đều là Networking
+2. Waypoint X: stagger 15px per edge (420, 435, 450)
+3. Entry Y: stagger trên target (0.3, 0.5, 0.7) — phân tán điểm vào
+4. Visual effect: edges gần nhau → tạo "bundle" corridor appearance
+5. CÓ THỂ dùng Grouped Arrow (E5 variant, `strokeWidth=4` + label) thay thế khi ở HLD level — nhưng trong detailed diagram phải vẽ từng edge riêng
+
+**Khi nào dùng Bundled vs Junction Point vs Grouped Arrow:**
+
+| N sources | Detail level | Cùng color? | Technique |
+|---|---|---|---|
+| 2-3 | Detailed | Yes | **Bundled Parallel** (Case 3b) |
+| 2-5 | Detailed | Yes | **Junction Point** (Part 9, Tech 1) |
+| 2-5 | HLD/overview | Yes | **Grouped Arrow** (1 thick line + label) |
+| 6+ | Any | Yes | **Bus Line** (Part 9, Tech 2) |
+| Any | Any | Mixed colors | KHÔNG merge — separate edges with offset lanes |
+
+---
+
+### PART 15.4: Rule #2 Amendment — Cross-Boundary Clarification
+
+**Original Rule #2**: "LINES MUST NOT CROSS FOREIGN BOUNDARIES — A line MUST NEVER pass through a container it doesn't belong to. Route around."
+
+**Clarification (AMENDMENT):**
+
+Rule #2 áp dụng cho **INTERMEDIATE containers** — containers mà edge XUYÊN QUA nhưng source và target đều KHÔNG thuộc về.
+
+**Rule #2 KHÔNG cấm:**
+- Edge exits source container (source nằm bên trong) → **EXPECTED behavior**
+- Edge enters target container (target nằm bên trong) → **EXPECTED behavior**
+
+**Rule #2 CẤM:**
+- Edge đi qua Container C khi source ∈ Container A và target ∈ Container B (C là intermediate) → **VIOLATION**
+
+**Visual:**
+
+```
+✅ ALLOWED (exit own container + enter target container):
+┌─── Account A ───┐         ┌─── Account B ───┐
+│                  │         │                  │
+│   [Firehose] ───┼────────→┼───→ [S3 Bucket]  │
+│                  │         │                  │
+└──────────────────┘         └──────────────────┘
+        ↑ edge exits A                ↑ edge enters B
+        (source container)            (target container)
+
+❌ FORBIDDEN (pass through intermediate container):
+┌─── Account A ───┐   ┌── Account C ──┐   ┌─── Account B ───┐
+│                  │   │               │   │                  │
+│   [Source] ──────┼───┼───XUYÊN QUA───┼───┼──→ [Target]     │
+│                  │   │               │   │                  │
+└──────────────────┘   └───────────────┘   └──────────────────┘
+                            ↑ VIOLATION — route around C!
+```
+
+**Khi edge BẮT BUỘC phải cross intermediate container** (layout constraints make routing around impossible):
+1. Ưu tiên: redesign layout để tránh
+2. Nếu không thể tránh: route edge ĐI TRÊN hoặc ĐI DƯỚI intermediate container (waypoints Y ở ngoài boundary)
+3. Last resort: nếu diagram space không cho phép route around → ghi note trong Design Spec rằng đây là acceptable trade-off
+
+---
+
+### PART 15.5: Cross-Account Log Aggregation Pattern (composite)
+
+**Pattern tổng hợp** cho Log Aggregation diagrams — kết hợp Case 12 + Case 3b + E12b + E16.
+
+**Layout structure:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│  ┌── Member Accounts ──┐    ┌── Log Archive Account ──────────┐│
+│  │ [VPC] [DNS] [TGW]   │    │  [region container]             ││
+│  │       ↓ bundled      │ ───┤──→ [Bucket: Network]    ▲      ││
+│  └──────────────────────┘    │                          │ E16  ││
+│                              │                          ▼      ││
+│  ┌── Security Account ─┐    │     [Bucket: Security]   ▲      ││
+│  │ [GD]→[SH]→[Firehose]│ ───┤──→                       │ E16  ││
+│  └──────────────────────┘    │                          ▼      ││
+│                              │     [Bucket: CloudTrail] ▲      ││
+│  ┌── Audit Account ────┐    │                           │ E16  ││
+│  │ [Trail]  [Config]   │ ───┤──→                        ▼      ││
+│  └──────────────────────┘    │     [Bucket: Config]            ││
+│                              └─────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Edge types used in this pattern:**
+
+| Connection | Edge Type | Why |
+|---|---|---|
+| GuardDuty → Security Hub (intra-account) | **E12b** (thick, solid, red) | Active security pipeline |
+| Security Hub → Firehose (intra-account) | **E12b** (thick, solid, red) | Active security pipeline |
+| VPC/DNS/TGW → Network Bucket (cross-account) | **Case 3b** bundled, color `#8C4FFF` | Multiple network sources → 1 target |
+| Firehose → Security Bucket (cross-account) | **Case 12** trunk, color `#C7131F` | Vertical trunk with branch |
+| Trail/Config → respective Buckets (cross-account) | **Case 12** trunk, color `#BC1356` | Management category |
+| Bucket → Bucket (vertical ordering) | **E16** (dashed, arrow, green) | Visual ordering/grouping |
+
+**Spacing for this pattern:**
+- Left column (source accounts): x=50 to x=400
+- Trunk corridor: x=450 to x=550
+- Right column (Log Archive + buckets): x=600 to x=900
+- Vertical gap between account containers: 40-60px
+- Vertical gap between buckets: 120-160px (includes label space)
+
+---
+
+## PART 16: UPDATED CHECKLIST (append to Part 13)
+
+Bổ sung vào checklist Part 13:
+
+```
+□ Vertical trunk patterns (Case 12): edges chia sẻ trunk X, offset 15px per lane
+□ Bundled parallel (Case 3b): entries stagger trên target (entryY=0.3/0.5/0.7)
+□ Sequential arrows (E16): dashed=1, CÓ arrowhead, strokeWidth=1
+□ Cross-boundary: chỉ intermediate containers bị cấm — exit/enter own container OK
+□ Intra-account security flow (E12b): strokeWidth=2 (thick) cho active pipeline
+□ Log aggregation composite: verify E12b (intra) + Case 12 (cross) + E16 (ordering) consistency
+```
+
+---
+
+## PART 17: UPDATED DECISION TREE (append to Part 14)
+
+Bổ sung vào decision tree Part 14:
+
+```
+  Log aggregation / multi-target delivery?
+  ├─ Sources cùng account, horizontal → Case 3b (Bundled Parallel)
+  ├─ Sources khác account, targets xếp dọc → Case 12 (Vertical Trunk)
+  └─ Ordering giữa targets (không phải data flow) → E16 (Sequential Dashed)
+
+  Security services trong cùng account?
+  ├─ Active pipeline (GD→SH, SH→Firehose) → E12b (thick, solid, #C7131F)
+  └─ Reference/dependency (KMS key ref) → E13 (dashed, thin)
+
+  Edge exits/enters container boundary?
+  ├─ Source HOẶC target trong container đó → OK (allowed)
+  └─ NEITHER source nor target trong container → VIOLATION (route around)
+```

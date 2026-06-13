@@ -310,40 +310,65 @@ Auto-route. No waypoints needed unless containers between them.
 
 ---
 
-### 🚨 MERGE RULE (prevents line bottleneck / spaghetti)
+### 🚨 3 HARD RULES FOR LINES
 
-**Problem from screenshot**: Multiple parallel lines running same direction = visual clutter ("cable bundle" / nút thắt).
+**Rule H1: Lines MUST NOT cross foreign container boundaries**
+- A line from Account A → Account B MUST exit A's boundary AND enter B's boundary at explicit points
+- A line MUST NEVER pass through a container it doesn't belong to (e.g., crossing Account C that's between A and B)
+- Use waypoints to route AROUND intermediate containers
 
-**Solution**: When 2+ edges of SAME color share the SAME destination → merge into a shared vertical segment, then 1 line goes to target.
+**Rule H2: Lines MUST NOT cross over icons**
+- Before writing each edge, trace the path mentally
+- If ANY icon or shape sits on that path → add waypoints to route AROUND it
+- Minimum clearance: 20px from any shape boundary
+
+**Rule H3: Lines MUST have clear direction**
+- Every data-flow line must have a visible arrowhead at the target end (`endArrow=classic`)
+- Bidirectional connections explicitly use `endArrow=none` (and are labeled as such)
+- Lines must flow in the declared direction (Left→Right or Top→Bottom as per Design Spec)
+- No ambiguous lines — if direction is unclear, add arrowhead
 
 ```
-❌ BAD (4 separate parallel lines — spaghetti):
-[S1] ─────────────────────→ [Target]
-[S2] ─────────────────────→ [Target]
-[S3] ─────────────────────→ [Target]
-[S4] ─────────────────────→ [Target]
+❌ BAD (violates all 3):
+[A] ──────── ✕ [B] ───── crosses [C] ────→ [D]  (crosses icon B, crosses container C, no clear direction)
 
-✅ GOOD (merge at junction, 1 shared segment to target):
+✅ GOOD:
+[A] ──┐                              ┌──→ [D]
+      │  (avoids B, routes around C) │
+      └──────────────────────────────┘
+```
+
+---
+
+### 🚨 3 MERGE TECHNIQUES (prevents spaghetti / nút thắt)
+
+Choose technique based on NUMBER OF SOURCES merging:
+
+| Sources | Technique | When |
+|---|---|---|
+| 2-5 | **Junction Point** | Small fan-in, clear origin visible |
+| 6+ | **Bus Line** | Many sources, need clean vertical/horizontal collector |
+| Any (HLD) | **Grouped Arrow** | High-level overview, detail not needed per-line |
+
+---
+
+#### Technique 1: Junction Point (2-5 sources → 1 target)
+
+Sources merge at a single waypoint coordinate, then 1 shared segment goes to target.
+
+```
 [S1] ──┐
-[S2] ──┤  junction     1 shared line
-[S3] ──┼─────────────────────→ [Target]
+[S2] ──┤  ← junction at x=450
+[S3] ──┼──────────────→ [Target]
 [S4] ──┘
 ```
 
-**When to MERGE:**
-- 2+ sources going to SAME target (or same target container)
-- Lines would run parallel >100px
-- Lines are SAME color and SAME type (all solid, all same strokeWidth)
-
-**When NOT to merge:**
-- Sources go to DIFFERENT targets → keep separate (use offset lanes)
-- Lines are DIFFERENT colors (different flow types)
-- Lines are different types (solid vs dashed)
-
-**Implementation**: All edges target same cell ID + use same trunk X → draw.io renders shared segment as 1 visual line.
+- All edges share SAME trunk X (or Y for horizontal merge)
+- Same `target` ID → draw.io overlaps the shared segment visually
+- Each source's waypoint converges to same coordinate
 
 ```xml
-<!-- S1 → Target: trunk at x=450 -->
+<!-- S1 → Target: junction at x=450 -->
 <mxCell id="e-s1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#CD2264;" edge="1" parent="1" source="s1" target="target-1">
   <mxGeometry relative="1" as="geometry">
     <Array as="points">
@@ -353,11 +378,11 @@ Auto-route. No waypoints needed unless containers between them.
   </mxGeometry>
 </mxCell>
 
-<!-- S2 → SAME Target: SAME trunk X=450 (visually merges) -->
+<!-- S2 → SAME Target: SAME junction X=450 -->
 <mxCell id="e-s2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#CD2264;" edge="1" parent="1" source="s2" target="target-1">
   <mxGeometry relative="1" as="geometry">
     <Array as="points">
-      <mxPoint x="450" y="250" />
+      <mxPoint x="450" y="200" />
       <mxPoint x="450" y="300" />
     </Array>
   </mxGeometry>
@@ -366,33 +391,83 @@ Auto-route. No waypoints needed unless containers between them.
 
 ---
 
-### 🚨 LINES MUST NOT CROSS THROUGH ICONS/SHAPES
+#### Technique 2: Bus Line (6+ sources → 1 or few targets)
 
-**Rule**: Before writing each edge, trace the path mentally. If ANY icon or shape sits on that path → add waypoints to route AROUND it.
-
-**Clearance**: Minimum 20px from any shape boundary.
+A dedicated vertical "bus" line collects all sources, then dispatches to targets. Sources connect horizontally to the bus, bus runs vertically, targets branch off horizontally.
 
 ```
-❌ BAD (line cuts through icon B):
-[A] ──────── ✕ [B] ──────→ [C]
-
-✅ GOOD (routes around B with clearance):
-[A] ──┐                ┌──→ [C]
-      │    [B]         │
-      └────────────────┘   (20px below B)
+[S1] ────┐
+[S2] ────┤
+[S3] ────┤
+[S4] ────┤  ║ BUS (vertical line at x=500)
+[S5] ────┤  ║
+[S6] ────┤  ║
+[S7] ────┘  ║
+            ╠════→ [Target 1]
+            ╠════→ [Target 2]
+            ╚════→ [Target 3]
 ```
 
+**Implementation**: Use a visible vertical line as a "bus" element:
 ```xml
-<!-- Route around obstacle -->
-<mxCell id="e-around" style="edgeStyle=orthogonalEdgeStyle;rounded=0;..." edge="1" parent="1" source="a" target="c">
+<!-- Bus line (visual element, not an edge) -->
+<mxCell id="bus-1" value="" style="endArrow=none;html=1;strokeWidth=4;strokeColor=#CD2264;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1">
   <mxGeometry relative="1" as="geometry">
-    <Array as="points">
-      <mxPoint x="100" y="250" />
-      <mxPoint x="400" y="250" />
-    </Array>
+    <mxPoint x="500" y="80" as="sourcePoint" />
+    <mxPoint x="500" y="600" as="targetPoint" />
   </mxGeometry>
 </mxCell>
+
+<!-- Sources connect TO bus (short horizontal stubs) -->
+<mxCell id="e-s1-bus" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#CD2264;entryX=0;entryY=0.1;" edge="1" parent="1" source="s1" target="bus-1">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+
+<!-- Bus dispatches TO targets (horizontal branches) -->
+<mxCell id="e-bus-t1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#CD2264;" edge="1" parent="1" source="bus-1" target="target-1">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
 ```
+
+---
+
+#### Technique 3: Grouped Arrow (HLD / high-level overview)
+
+For high-level diagrams where individual lines would clutter — use ONE thick arrow representing the aggregate flow, with a label describing what flows through it.
+
+```
+┌─────────────┐                    ┌─────────────┐
+│  Source      │                    │  Target     │
+│  Accounts   │ ════════════════►  │  Log Archive│
+│  (All)      │   "All Logs"       │  Account    │
+└─────────────┘                    └─────────────┘
+```
+
+**Implementation**: Single thick edge with descriptive label:
+```xml
+<mxCell id="e-grouped" value="VPC Flow + DNS + TGW Logs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=4;strokeColor=#8C4FFF;fontSize=10;fontStyle=1;" edge="1" parent="1" source="src-accounts" target="tgt-logarchive">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+```
+
+**When to use Grouped Arrow:**
+- HLD (High-Level Design) diagrams where detail is zoomed out
+- Executive overview — audiences don't need per-service lines
+- When 5+ individual lines would make the diagram unreadable
+- Label MUST describe what's aggregated: "All Security Findings", "VPC + DNS + TGW Logs"
+
+---
+
+### MERGE DECISION TABLE
+
+| Condition | Technique |
+|---|---|
+| 2-5 sources, same color, same target | **Junction Point** |
+| 6+ sources, same color, same target area | **Bus Line** |
+| HLD/overview, many flows abstracted | **Grouped Arrow** |
+| Sources → DIFFERENT targets | **Do NOT merge** (use offset lanes) |
+| Different colors (different flow types) | **Do NOT merge** (keep separate) |
+| Different line types (solid vs dashed) | **Do NOT merge** |
 
 ---
 

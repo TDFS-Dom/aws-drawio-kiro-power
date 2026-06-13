@@ -1,0 +1,252 @@
+<mxfile host="app.diagrams.net" modified="2026-06-13T00:00:00.000Z" agent="Kiro" version="24.0.0" type="device">
+  <diagram id="fig-4-1-1" name="Log Archive S3 Architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ═══ PHASE 1: CONTAINERS (outermost → innermost) ═══ -->
+
+        <!-- Member Accounts (grouped) -->
+        <mxCell id="c-member" value="Member Accounts" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_account;strokeColor=#CD2264;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#CD2264;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="280" height="520" as="geometry" />
+        </mxCell>
+
+        <!-- Audit Account -->
+        <mxCell id="c-audit" value="Audit Account" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_account;strokeColor=#CD2264;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#CD2264;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="620" width="280" height="360" as="geometry" />
+        </mxCell>
+
+        <!-- Information Security Account -->
+        <mxCell id="c-infosec" value="Information Security Account" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_account;strokeColor=#CD2264;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#CD2264;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="420" y="320" width="300" height="660" as="geometry" />
+        </mxCell>
+
+        <!-- Log Archive Account -->
+        <mxCell id="c-logarchive" value="Log Archive Account" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_account;strokeColor=#CD2264;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#CD2264;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="840" y="60" width="350" height="920" as="geometry" />
+        </mxCell>
+
+        <!-- Region inside Log Archive -->
+        <mxCell id="c-logarchive-region" value="ap-southeast-1" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_region;strokeColor=#00A4A6;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#147EBA;dashed=1;" vertex="1" parent="c-logarchive">
+          <mxGeometry x="20" y="40" width="310" height="860" as="geometry" />
+        </mxCell>
+
+        <!-- ═══ PHASE 2: ALL EDGES ═══ -->
+
+        <!-- VPC Flow Logs → Network Bucket (Networking data flow) -->
+        <mxCell id="e-vpcflow-netbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#8C4FFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-vpcflow" target="i-bucket-network">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="780" y="139" />
+              <mxPoint x="780" y="179" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- DNS Query Logs → Network Bucket (Networking data flow) -->
+        <mxCell id="e-dns-netbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#8C4FFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-dns" target="i-bucket-network">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="795" y="300" />
+              <mxPoint x="795" y="179" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- TGW Flow Logs → Network Bucket (Networking data flow) -->
+        <mxCell id="e-tgw-netbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#8C4FFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-tgw" target="i-bucket-network">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="810" y="461" />
+              <mxPoint x="810" y="179" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- GuardDuty → Security Bucket (Security data flow) -->
+        <mxCell id="e-gd-secbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#C7131F;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-guardduty" target="i-bucket-security">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="780" y="399" />
+              <mxPoint x="780" y="399" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Security Hub → Firehose → Security Bucket (Security data flow) -->
+        <mxCell id="e-sh-firehose" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#C7131F;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-securityhub" target="i-firehose">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Firehose → Security Bucket -->
+        <mxCell id="e-firehose-secbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#C7131F;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-firehose" target="i-bucket-security">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="795" y="560" />
+              <mxPoint x="795" y="438" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- CloudTrail (Audit) → S3 Replication → CloudTrail Bucket (Management data flow) -->
+        <mxCell id="e-ct-ctbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#BC1356;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-cloudtrail" target="i-bucket-cloudtrail">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="380" y="699" />
+              <mxPoint x="380" y="619" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Config (Audit) → S3 Replication → Config Bucket (Management data flow) -->
+        <mxCell id="e-config-cfgbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#BC1356;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-config" target="i-bucket-config">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="395" y="860" />
+              <mxPoint x="395" y="839" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- KMS → Network Bucket (Encryption dependency) -->
+        <mxCell id="e-kms-netbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#DD344C;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-kms" target="i-bucket-network">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="760" y="720" />
+              <mxPoint x="760" y="250" />
+              <mxPoint x="939" y="250" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- KMS → Security Bucket (Encryption dependency) -->
+        <mxCell id="e-kms-secbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#DD344C;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-kms" target="i-bucket-security">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="745" y="720" />
+              <mxPoint x="745" y="470" />
+              <mxPoint x="939" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- KMS → CloudTrail Bucket (Encryption dependency) -->
+        <mxCell id="e-kms-ctbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#DD344C;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-kms" target="i-bucket-cloudtrail">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="730" y="720" />
+              <mxPoint x="730" y="690" />
+              <mxPoint x="939" y="690" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- KMS → Config Bucket (Encryption dependency) -->
+        <mxCell id="e-kms-cfgbucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#DD344C;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-kms" target="i-bucket-config">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="715" y="720" />
+              <mxPoint x="715" y="910" />
+              <mxPoint x="939" y="910" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ═══ PHASE 3: ALL SHAPES (Icons) ═══ -->
+
+        <!-- Member Accounts: VPC Flow Logs -->
+        <mxCell id="i-vpcflow" value="VPC Flow Logs" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#4D27AA;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.flow_logs;" vertex="1" parent="c-member">
+          <mxGeometry x="101" y="40" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Member Accounts: DNS Query Logs -->
+        <mxCell id="i-dns" value="DNS Query Logs" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#4D27AA;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.route_53_resolver_query_logging;" vertex="1" parent="c-member">
+          <mxGeometry x="101" y="201" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Member Accounts: TGW Flow Logs -->
+        <mxCell id="i-tgw" value="TGW Flow Logs" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;fillColor=#8C4FFF;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.transit_gateway;" vertex="1" parent="c-member">
+          <mxGeometry x="101" y="362" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Audit Account: CloudTrail -->
+        <mxCell id="i-cloudtrail" value="Organization Trail" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=#F34482;gradientDirection=north;fillColor=#BC1356;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudtrail;" vertex="1" parent="c-audit">
+          <mxGeometry x="101" y="40" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Audit Account: Config -->
+        <mxCell id="i-config" value="Config Recorder" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=#F34482;gradientDirection=north;fillColor=#BC1356;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.config;" vertex="1" parent="c-audit">
+          <mxGeometry x="101" y="201" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Information Security Account: GuardDuty -->
+        <mxCell id="i-guardduty" value="GuardDuty" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=#F54749;gradientDirection=north;fillColor=#C7131F;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.guardduty;" vertex="1" parent="c-infosec">
+          <mxGeometry x="111" y="40" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Information Security Account: Security Hub -->
+        <mxCell id="i-securityhub" value="Security Hub" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=#F54749;gradientDirection=north;fillColor=#C7131F;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.security_hub;" vertex="1" parent="c-infosec">
+          <mxGeometry x="111" y="201" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Information Security Account: Firehose -->
+        <mxCell id="i-firehose" value="Kinesis Firehose" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=#945DF2;gradientDirection=north;fillColor=#5A30B5;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.kinesis_data_firehose;" vertex="1" parent="c-infosec">
+          <mxGeometry x="111" y="362" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Information Security Account: KMS -->
+        <mxCell id="i-kms" value="KMS&#xa;alias/elz-logarchive-s3" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=#F54749;gradientDirection=north;fillColor=#C7131F;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.key_management_service;" vertex="1" parent="c-infosec">
+          <mxGeometry x="111" y="523" width="78" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Log Archive: Network Bucket -->
+        <mxCell id="i-bucket-network" value="acb-logs-network-{account_id}" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#3F8624;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.bucket_with_objects;" vertex="1" parent="c-logarchive-region">
+          <mxGeometry x="116" y="40" width="75" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Log Archive: Security Bucket -->
+        <mxCell id="i-bucket-security" value="acb-logs-security-{account_id}" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#3F8624;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.bucket_with_objects;" vertex="1" parent="c-logarchive-region">
+          <mxGeometry x="116" y="260" width="75" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Log Archive: CloudTrail Bucket -->
+        <mxCell id="i-bucket-cloudtrail" value="acb-logs-cloudtrail-{account_id}" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#3F8624;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.bucket_with_objects;" vertex="1" parent="c-logarchive-region">
+          <mxGeometry x="116" y="480" width="75" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Log Archive: Config Bucket -->
+        <mxCell id="i-bucket-config" value="acb-logs-config-{account_id}" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#3F8624;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.bucket_with_objects;" vertex="1" parent="c-logarchive-region">
+          <mxGeometry x="116" y="700" width="75" height="78" as="geometry" />
+        </mxCell>
+
+        <!-- Text annotations -->
+        <mxCell id="t-delivery" value="delivery.logs.amazonaws.com" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="340" y="110" width="170" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="t-replication-ct" value="S3 Replication&#xa;(acb-s3-replication-cloudtrail)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="340" y="660" width="180" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="t-replication-cfg" value="S3 Replication&#xa;(acb-s3-replication-config)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="340" y="830" width="170" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="t-firehose-role" value="acb-firehose-securityhub-export" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="580" y="510" width="180" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="t-encrypt" value="SSE-KMS Encryption" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="580" y="700" width="120" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- TLS annotation -->
+        <mxCell id="t-tls" value="All buckets enforce&#xa;DenyUnencryptedTransport (TLS)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;" vertex="1" parent="c-logarchive-region">
+          <mxGeometry x="30" y="820" width="180" height="40" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

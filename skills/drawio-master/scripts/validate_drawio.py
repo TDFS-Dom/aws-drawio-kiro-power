@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Draw.io XML Validator — 8-point quality check on generated .drawio files.
+Draw.io XML Validator — 9-point quality check on generated .drawio files.
 
 Usage:
     python3 validate_drawio.py <file.drawio>
@@ -11,10 +11,11 @@ Checks:
 2. No HTML tags in value="" attributes
 3. No text overlap (basic bounding box check)
 4. No broken edges (source/target IDs exist)
-5. Z-order correct (edges before shapes)
+5. All edges have edgeStyle=orthogonalEdgeStyle and rounded=0
 6. Labels not empty for service icons
 7. Containers enclose children (parent hierarchy valid)
 8. Styles match known patterns (spot-check)
+9. Edge strokeColor matches source service category (future)
 """
 
 import sys
@@ -104,6 +105,23 @@ def validate(filepath: str, fix: bool = False) -> dict:
             errors.append(f"[CHECK 4] Edge {cell_id} references non-existent source: {source}")
         if target and target not in all_ids:
             errors.append(f"[CHECK 4] Edge {cell_id} references non-existent target: {target}")
+    
+    # CHECK 5: All edges must have edgeStyle=orthogonalEdgeStyle and rounded=0
+    for cell in edge_cells:
+        style = cell.get("style", "")
+        cell_id = cell.get("id", "?")
+        if "edgeStyle=orthogonalEdgeStyle" not in style:
+            errors.append(f"[CHECK 5] Edge {cell_id} missing edgeStyle=orthogonalEdgeStyle (will render as diagonal line)")
+            if fix:
+                style = "edgeStyle=orthogonalEdgeStyle;" + style
+                cell.set("style", style)
+                fixes_applied.append(f"Added edgeStyle=orthogonalEdgeStyle to edge {cell_id}")
+        if "rounded=1" in style:
+            errors.append(f"[CHECK 5] Edge {cell_id} has rounded=1 (must be rounded=0)")
+            if fix:
+                style = style.replace("rounded=1", "rounded=0")
+                cell.set("style", style)
+                fixes_applied.append(f"Fixed rounded=1 → rounded=0 on edge {cell_id}")
     
     # CHECK 6: Labels not empty for service icons
     for cell in resource_icons:

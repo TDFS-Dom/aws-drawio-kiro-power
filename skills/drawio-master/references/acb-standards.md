@@ -36,6 +36,24 @@
 
 ## Edge Colors
 
+### Architecture Diagrams (default for most templates)
+
+Color edges by **source service AWS category**:
+
+| Edge Purpose | strokeColor | strokeWidth | dashed | When |
+|---|---|---|---|---|
+| Networking data flow | `#8C4FFF` | 2 | 0 | VPC Flow Logs, DNS, TGW → destination |
+| Security data flow | `#C7131F` | 2 | 0 | GuardDuty, Security Hub → destination |
+| Management data flow | `#BC1356` | 2 | 0 | S3 Replication, Config → destination |
+| Compute data flow | `#ED7100` | 2 | 0 | Lambda, Step Functions → destination |
+| DevTools data flow | `#C925D1` | 2 | 0 | CodePipeline, CodeBuild → destination |
+| Encryption/dependency | `#DD344C` | 1 | 1 | KMS → encrypted resources |
+| Hierarchy (OU tree) | default (black) | 1 | 0 | Parent → child org nodes |
+
+### AFT Pipeline Template Only (swimlane phases)
+
+These colors apply ONLY to `aft_pipeline` template diagrams with phase swimlanes:
+
 | Connection Type | strokeColor | fillColor | strokeWidth | endArrow |
 |---|---|---|---|---|
 | DX / TGW (orange) | `#D79B00` | `#d5e8d4` or `#ffe6cc` | 2 | none |
@@ -78,11 +96,12 @@
 
 1. Grid: always ON (10px)
 2. Shadow: always OFF
-3. All edges: `edgeStyle=orthogonalEdgeStyle;rounded=0`
+3. All edges: `edgeStyle=orthogonalEdgeStyle;rounded=0` (NO EXCEPTIONS — omitting `edgeStyle` causes diagonal lines)
 4. Hierarchy: top→bottom (OU) or hub-spoke (networking)
 5. No text overlap
 6. Containers must fully enclose children
 7. XML order: containers → edges → shapes
+8. Cross-account edges: use exit/entry points for predictable routing
 
 ## Anti-patterns (FORBIDDEN)
 

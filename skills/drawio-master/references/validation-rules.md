@@ -228,6 +228,22 @@ TRƯỚC KHI bắt đầu tạo XML, bạn PHẢI xác nhận các thông tin sa
 58. Mỗi cell PHẢI có strokeColor=#FFFFFF trong style string
 59. Nếu thiếu → THÊM VÀO ngay. Nếu có giá trị khác (#000000, #232F3E) → SỬA thành #FFFFFF
 
+### Check 1b: resourceIcon PHẢI có resIcon (KMS known issue)
+60. Quét TOÀN BỘ mxCell có style chứa `shape=mxgraph.aws4.resourceIcon`
+61. Mỗi cell PHẢI có `resIcon=mxgraph.aws4.{service_name}` trong style string
+62. Nếu thiếu `resIcon` → icon sẽ render thành **hình vuông trơn** (chỉ fillColor, không có graphic)
+63. Lỗi thường gặp — KMS:
+    - ❌ `shape=mxgraph.aws4.resourceIcon;fillColor=#DD344C` (thiếu resIcon → red square)
+    - ❌ `resIcon=mxgraph.aws4.kms` (tên sai → red square)
+    - ✅ `shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.key_management_service;fillColor=#DD344C`
+64. Các service hay bị sai tên resIcon:
+    | Service | ❌ Sai | ✅ Đúng |
+    |---|---|---|
+    | KMS | `kms` | `key_management_service` |
+    | CloudWatch | `cloudwatch` | `cloudwatch_2` |
+    | Step Functions | `step_functions` | `step_functions` |
+    | Organizations | `organizations` | `organizations` |
+
 ### Check 2: HTML Label Validation
 60. Quét TOÀN BỘ value="" của mọi mxCell
 61. Tìm và sửa tất cả label chứa raw HTML tags: `<br>`, `<br/>`, `<b>`, `<i>`, `<font>`, `<hr>`

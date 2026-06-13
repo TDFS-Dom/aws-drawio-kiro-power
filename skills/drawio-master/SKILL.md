@@ -24,7 +24,7 @@
 > - ❌ Custom colors like `#dae8fc`, `#d5e8d4`, `#fff2cc` ← INVENTED. Templates use `#CD2264`, `#8C4FFF`, `#BC1356`, etc.
 >
 > **IF A STYLE IS NOT IN THE SHEET FILE → YOU CANNOT USE IT. ASK THE USER.**
-> **EXCEPTION: Edges use 3 fixed patterns defined in "WHAT EDGES LOOK LIKE" section — no sheet lookup needed for edges.**
+> **EXCEPTION: Edges use 3 structural patterns (Data Flow/Dependency/Hierarchy) with colors from `references/draw-patterns.md` — no sheet lookup needed for edges.**
 
 ---
 
@@ -34,7 +34,7 @@
 2. **BLOCKING = HARD STOP** — Step 2 waits for user confirmation. Do NOT proceed.
 3. **NO SPECULATIVE XML** — Do NOT write any XML until Step 4.
 4. **SHEET FILE IS LAW** — Every style string MUST come from `templates/{id}/sheets/{NN}_{slug}.md`. **Exception for edges**: Edge base pattern (`edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;`) is universal — `strokeColor` and `strokeWidth` are set per the Edge Types table in "WHAT EDGES LOOK LIKE" section, not copied verbatim from sheets.
-5. **NO STYLE INVENTION** — If you write a container or icon style not found in a sheet file, it's a bug. Edge styles follow the 3 allowed patterns in "WHAT EDGES LOOK LIKE" — no other edge styles permitted.
+5. **NO STYLE INVENTION** — If you write a container or icon style not found in a sheet file, it's a bug. Edge styles follow 3 structural patterns (Data Flow/Dependency/Hierarchy) with colors from `references/draw-patterns.md` — no other edge colors/structures permitted.
 6. **XML WRITE ORDER** — Containers → Edges → Shapes. Always.
 7. **NO ROUNDED EDGES** — All edges: `rounded=0`. No exceptions.
 8. **EVERY EDGE MUST HAVE `edgeStyle=orthogonalEdgeStyle`** — Omitting causes diagonal lines that cut across containers. No exceptions.
@@ -116,6 +116,8 @@ For active data movement between services (logs, events, replication).
 | Management (Config, Organizations, S3 Replication) | `#BC1356` | S3 Replication → S3 |
 | Compute (Lambda, Step Functions) | `#ED7100` | Lambda → SQS |
 | DevTools (CodePipeline, CodeBuild) | `#C925D1` | CodePipeline → CodeBuild |
+
+> **Full color list**: See `references/draw-patterns.md` Edge table (E1-E15) for all allowed colors including `#FF9933` (AFT process), `#FF0000` (critical/alert), `#33FF33` (integration), `#D79B00` (DX/on-prem), `#6c8ebf` (NonProd shared), `#82B366` (Prod shared).
 
 #### Type 2: Dependency/Encryption — Dashed, thinner, strokeWidth=1
 

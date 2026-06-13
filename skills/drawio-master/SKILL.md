@@ -28,19 +28,29 @@
 
 ---
 
-## 🚨 MANDATORY RULES (numbered for audit)
+## 🚨 MANDATORY RULES (14 rules, sorted by priority)
 
+### Priority A: Pipeline Discipline (break = entire output invalid)
 1. **SERIAL EXECUTION** — Steps in order. No skipping.
 2. **BLOCKING = HARD STOP** — Step 2 waits for user confirmation. Do NOT proceed.
 3. **NO SPECULATIVE XML** — Do NOT write any XML until Step 4.
-4. **SHEET FILE IS LAW** — Every style string MUST come from `templates/{id}/sheets/{NN}_{slug}.md`. **Exception for edges**: Edge base pattern (`edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;`) is universal — `strokeColor` and `strokeWidth` are set per the Edge Types table in "WHAT EDGES LOOK LIKE" section, not copied verbatim from sheets.
-5. **NO STYLE INVENTION** — If you write a container or icon style not found in a sheet file, it's a bug. Edge styles follow 3 structural patterns (Data Flow/Dependency/Hierarchy) with colors from `references/draw-patterns.md` — no other edge colors/structures permitted.
-6. **XML WRITE ORDER** — Containers → Edges → Shapes. Always.
-7. **NO ROUNDED EDGES** — All edges: `rounded=0`. No exceptions.
-8. **EVERY EDGE MUST HAVE `edgeStyle=orthogonalEdgeStyle`** — Omitting causes diagonal lines that cut across containers. No exceptions.
-9. **ACCOUNTS USE AWS GROUPS** — Never use `rounded=1;whiteSpace=wrap` for accounts. Always `shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_account`.
-10. **NO XML COMMENTS** — `<!-- -->` comments are strictly forbidden in output XML. They waste tokens, can cause parse errors, and serve no purpose. (Official draw.io rule)
-11. **ALWAYS `html=1`** — Include `html=1` in EVERY cell style string. Without it, HTML entities in labels render as literal text. (Official draw.io best practice)
+
+### Priority B: Style Source (break = wrong visual output)
+4. **SHEET FILE IS LAW** — Every container/icon style MUST come from `templates/{id}/sheets/{NN}_{slug}.md`. **Exception for edges**: Edge base pattern is universal — colors from `references/draw-patterns.md`.
+5. **NO STYLE INVENTION** — If you write a container or icon style not found in a sheet file, it's a bug.
+6. **ACCOUNTS USE AWS GROUPS** — Never use `rounded=1;whiteSpace=wrap` for accounts. Always `shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_account`.
+
+### Priority C: XML Structure (break = file won't render correctly)
+7. **XML WRITE ORDER** — Containers → Edges → Shapes. Always.
+8. **NO XML COMMENTS** — `<!-- -->` comments are strictly forbidden in output. (Official draw.io rule)
+9. **ALWAYS `html=1`** — Include `html=1` in EVERY cell style string. (Official draw.io best practice)
+10. **EVERY EDGE MUST HAVE `edgeStyle=orthogonalEdgeStyle`** — Omitting causes diagonal lines across containers.
+11. **NO ROUNDED EDGES** — All edges: `rounded=0`. No exceptions.
+
+### Priority D: Visual Quality (break = messy/unreadable diagram)
+12. **LINES MUST NOT CROSS FOREIGN BOUNDARIES** — A line MUST NEVER pass through a container it doesn't belong to. Route around.
+13. **LINES MUST NOT CROSS ICONS** — If any shape sits on the edge path → waypoints to route around. Clearance 20px.
+14. **LINES MUST HAVE CLEAR DIRECTION** — Every data-flow line must have arrowhead. Bidirectional explicitly uses `endArrow=none`.
 
 ---
 
@@ -309,36 +319,6 @@ Auto-route. No waypoints needed unless containers between them.
 ```
 - Each source enters target at different Y
 - **If sources are same flow type → MERGE into shared segment** (see MERGE RULE below)
-
----
-
-### 🚨 3 HARD RULES FOR LINES
-
-**Rule H1: Lines MUST NOT cross foreign container boundaries**
-- A line from Account A → Account B MUST exit A's boundary AND enter B's boundary at explicit points
-- A line MUST NEVER pass through a container it doesn't belong to (e.g., crossing Account C that's between A and B)
-- Use waypoints to route AROUND intermediate containers
-
-**Rule H2: Lines MUST NOT cross over icons**
-- Before writing each edge, trace the path mentally
-- If ANY icon or shape sits on that path → add waypoints to route AROUND it
-- Minimum clearance: 20px from any shape boundary
-
-**Rule H3: Lines MUST have clear direction**
-- Every data-flow line must have a visible arrowhead at the target end (`endArrow=classic`)
-- Bidirectional connections explicitly use `endArrow=none` (and are labeled as such)
-- Lines must flow in the declared direction (Left→Right or Top→Bottom as per Design Spec)
-- No ambiguous lines — if direction is unclear, add arrowhead
-
-```
-❌ BAD (violates all 3):
-[A] ──────── ✕ [B] ───── crosses [C] ────→ [D]  (crosses icon B, crosses container C, no clear direction)
-
-✅ GOOD:
-[A] ──┐                              ┌──→ [D]
-      │  (avoids B, routes around C) │
-      └──────────────────────────────┘
-```
 
 ---
 

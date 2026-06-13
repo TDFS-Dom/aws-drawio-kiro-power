@@ -97,6 +97,7 @@ aws-drawio-kiro-power/
 ├── skills/drawio-master/
 │   ├── SKILL.md                      # Core pipeline definition
 │   ├── references/                   # Technical docs (AI reads on-demand)
+│   │   ├── draw-patterns.md          # Generic patterns lookup (edges, containers, icons)
 │   │   ├── acb-standards.md          # Visual standards + anti-patterns
 │   │   ├── aws-icons.md              # AWS icon catalog
 │   │   ├── validation-rules.md       # Post-draw validation rules
@@ -114,11 +115,10 @@ aws-drawio-kiro-power/
 │   │   ├── {template_id}/
 │   │   │   ├── design_spec.md        # Template overview + patterns
 │   │   │   ├── sheets_index.md       # Sheet name → file lookup
-│   │   │   ├── sheets/              # 1 file per sheet (copy-paste styles)
-│   │   │   │   ├── 01_hld.md
-│   │   │   │   ├── 02_xxx.md
-│   │   │   │   └── ...
-│   │   │   └── *.drawio              # Source file (READ-ONLY)
+│   │   │   └── sheets/              # 1 file per sheet (copy-paste styles)
+│   │   │       ├── 01_hld.md
+│   │   │       ├── 02_xxx.md
+│   │   │       └── ...
 │   │   ├── design_spec_reference.md  # Project spec template
 │   │   └── spec_lock_reference.md    # Execution contract template
 │   └── workflows/                    # Standalone sub-workflows

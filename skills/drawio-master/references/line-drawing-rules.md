@@ -27,16 +27,20 @@ Mọi container (Account, VPC, Subnet, Swimlane...) có border = đường kẻ 
 
 ### Kiểm tra bắt buộc trước khi viết XML
 
-Với MỖI container, sau khi tính toán kích thước:
+Với MỖI container (tọa độ icon là relative to container):
 
 ```
-container_right_edge  = container_x + container_width
-icon_right_edge       = icon_x_relative + icon_width
+PHẢI ĐẢM BẢO:
+  icon_x + icon_width + right_padding  ≤  container_width      (horizontal)
+  icon_y + icon_height + label(30px) + bottom_padding  ≤  container_height  (vertical)
 
-PHẢI ĐẢM BẢO: icon_right_edge + 20px ≤ container_width - right_padding
+  right_padding  = 81px (minimum)
+  bottom_padding = 50px (minimum)
 ```
 
-Nếu vi phạm → tăng container width, KHÔNG thu nhỏ icon.
+Ví dụ: icon tại x=370 (relative), width=78 → cần container_width ≥ 370 + 78 + 81 = **529px**
+
+Nếu vi phạm → tăng container width/height. KHÔNG thu nhỏ icon.
 
 ### Pattern lỗi phổ biến nhất (Production observed)
 
@@ -210,7 +214,7 @@ Dùng khi: GuardDuty → Security Hub, thin security data path.
 ### E13 — Security Dependency (đỏ, dashed, mỏng)
 
 ```
-edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#C7131F;fontSize=8;dashed=1;
+edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C7131F;fontSize=8;dashed=1;
 ```
 
 Dùng khi: IAM policy reference, security control dependency (non-data).
@@ -227,14 +231,16 @@ Dùng khi: Service integration, EventBridge → Lambda, cross-service data link.
 
 ---
 
-### E15 — Networking Service Purple Dashed
+### E15 — Networking Service Purple Dashed ⚠️ EXCEPTION
+
+> **⚠️ EXCEPTION**: Edge này KHÔNG dùng `edgeStyle=orthogonalEdgeStyle`. Đây là special case — chỉ dùng khi cần DNS resolution curve với explicit exit/entry. Xem PART 3 để hiểu các exceptions.
 
 ```
 html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=classic;endFill=1;strokeColor=#8C4FFF;fontSize=10;dashed=1;labelBackgroundColor=#FFFFFF;
 ```
 
-Dùng khi: DNS resolution (Route 53 → VPC), VPC → TGW connection type.  
-**Lưu ý**: Edge này KHÔNG có `edgeStyle=orthogonalEdgeStyle` — là exception dùng auto-route với explicit exit/entry.
+Dùng khi: DNS resolution (Route 53 → VPC), VPC → TGW connection type với explicit left→right direction.  
+**KHÔNG dùng** cho các networking edges thông thường — dùng `edgeStyle=orthogonalEdgeStyle` + `strokeColor=#8C4FFF` thay thế.
 
 ---
 
@@ -586,7 +592,7 @@ Khi diagram có nhiều loại edge → thêm Legend box.
 
 ---
 
-## PART 11b: EDGE `parent` ASSIGNMENT (thường bị bỏ sót)
+## PART 12: EDGE `parent` ASSIGNMENT (thường bị bỏ sót)
 
 ### Quy tắc
 
@@ -649,7 +655,7 @@ Legend lines dùng `sourcePoint`/`targetPoint` trực tiếp (không có source/
 
 ---
 
-## PART 12: VIOLATIONS — KHÔNG BAO GIỜ LÀM
+## PART 13: VIOLATIONS — KHÔNG BAO GIỜ LÀM
 
 | ❌ Vi phạm | ✅ Thay thế |
 |---|---|
@@ -668,72 +674,105 @@ Legend lines dùng `sourcePoint`/`targetPoint` trực tiếp (không có source/
 
 ---
 
-## PART 13: CHECKLIST — Verify mỗi edge trước khi submit
+## PART 14: CHECKLIST — Verify mỗi edge trước khi submit
 
 ```
-□ edgeStyle=orthogonalEdgeStyle có mặt
+MANDATORY (mọi edge):
+□ edgeStyle=orthogonalEdgeStyle có mặt (trừ E15, S1, S2 exceptions)
 □ rounded=0 (không phải rounded=1)
 □ html=1 có mặt
-□ source= và target= ID hợp lệ (trừ bus/legend)
-□ strokeColor khớp với AWS category của SOURCE service
-□ strokeWidth đúng: data flow=2, dependency=1, primary=3
-□ dashed=1 cho dependency/reference, solid cho data flow
-□ Mũi tên đúng hướng data flow
-□ Cross-account 2+ hops: có waypoints
-□ Fan-out 1→3+: waypoints stagger 20px
+□ relative="1" trong mxGeometry
+□ source= và target= ID hợp lệ (trừ bus/legend/floating)
+□ parent đúng: cross-container → "1", same-container → "container-id"
+
+STYLE:
+□ strokeColor khớp với AWS category của SOURCE service (xem PART 5)
+□ strokeWidth đúng: data flow=2, dependency=1, primary=3, intra-account security=2
+□ dashed=1 cho dependency/reference/encryption scope, solid cho data flow
+□ Mũi tên đúng hướng: data flow → endArrow=classic, bidirectional/dependency → endArrow=none
+
+ROUTING:
+□ Cross-account 2+ hops: có waypoints + exit/entry points
+□ Fan-out 1→3+: waypoints stagger 20px per edge
 □ Không edge nào chồng lên icon (clearance ≥ 20px)
-□ Không edge nào xuyên qua container không thuộc về
-□ Parallel edges cùng path: offset ≥ 20px
+□ Không edge nào xuyên qua INTERMEDIATE container (source/target không thuộc container đó)
+□ Parallel edges cùng path: offset ≥ 20px (vertical stagger)
+□ Vertical trunk (Case 12): chia sẻ trunk X, offset 15px per lane
+
+LABELS:
 □ Label (nếu có): fontSize=12, fontStyle=1 cho step labels
+□ labelBackgroundColor=#FFFFFF nếu label overlap edge
+
+COMPOSITE PATTERNS:
 □ 3+ edge types trong diagram: có Legend box
-□ edge parent: cross-container → parent="1", same-container → parent="container-id"
-□ mxGeometry có relative="1"
+□ Log aggregation: verify E12b (intra) + Case 12 (cross) + E16 (ordering) + E17 (encryption) consistency
+□ Intra-account security flow: E12b (strokeWidth=2, solid #C7131F)
+□ KMS scope: E17 = dashed container bao quanh targets + dashed edge từ KMS
+□ Bundled parallel: chain + aggregation connector (Case 3b) OR individual parallel edges
+
+CONTAINER SIZE (trước khi đặt icon):
+□ container_width ≥ rightmost_icon_x + icon_width + 81px
+□ container_height ≥ bottom_icon_y + icon_height + 30px(label) + 50px
+□ Không container border nào cắt qua child icon
 ```
 
 ---
 
-## PART 14: QUICK-PICK DECISION TREE
+## PART 15: QUICK-PICK DECISION TREE
 
 ```
 Cần vẽ 1 line →
 
   Data flow thực? 
-  ├─ YES → strokeWidth=2, solid
-  │         Source category color
-  │         endArrow=classic (default)
+  ├─ YES → strokeWidth=2, solid, endArrow=classic
+  │         Source category color (PART 5)
+  │         Security intra-account? → E12b (strokeWidth=2)
   │
   └─ NO (reference/encrypt/depend) →
-            strokeWidth=1, dashed=1
+            strokeWidth=1, dashed=1, endArrow=none;endFill=0
             Source category color
-            endArrow=none;endFill=0
+            KMS encryption? → E17 (scope container + dashed edge)
 
   Cùng container?
-  ├─ YES → auto-route, không waypoints
-  └─ NO → thêm exit/entry points
-           Adjacent (1 hop)? → exit/entry đủ
-           2+ hops? → thêm waypoints BẮT BUỘC
+  ├─ YES → parent="container-id", auto-route, không waypoints
+  └─ NO  → parent="1", thêm exit/entry points
+            Adjacent (1 hop)? → exit/entry đủ
+            2+ hops? → waypoints BẮT BUỘC (route around intermediate)
 
   Nhiều lines cùng chiều?
-  ├─ 2-5 → Junction Point (cùng X waypoint)
-  ├─ 6+ → Bus Line
+  ├─ 2-5 sources, cùng target → Junction Point (cùng X waypoint)
+  ├─ 6+ sources → Bus Line
   └─ HLD → Grouped Arrow (1 thick line + label)
 
+  Log aggregation / multi-target delivery?
+  ├─ Sources cùng account, horizontal → Case 3b (Bundled/Chain + Connector)
+  ├─ Sources khác account, targets xếp dọc → Case 12 (Vertical Trunk)
+  └─ Ordering giữa targets (không data flow) → E16 (dashed, pink, có arrow)
+
+  Security services?
+  ├─ Active pipeline cùng account (GD→SH, SH→Firehose) → E12b
+  ├─ Cross-account security finding → E12 (thin)
+  └─ Reference/dependency (IAM, KMS key ref) → E13 hoặc E17
+
+  Edge exits/enters container boundary?
+  ├─ Source HOẶC target trong container đó → OK
+  └─ NEITHER source nor target → VIOLATION → route around
+
   Cần curve?
-  ├─ Networking topology/DNS → edgeStyle=none;curved=1
+  ├─ Networking topology/DNS → S1 (edgeStyle=none;curved=1)
   └─ Mọi trường hợp khác → edgeStyle=orthogonalEdgeStyle
 ```
 
-
 ---
 
-## PART 15: ADDITIONAL EDGE PATTERNS (từ production Log Aggregation diagrams)
+## PART 16: ADDITIONAL EDGE PATTERNS (từ production Log Aggregation diagrams)
 
 > **Research basis**: Visual analysis từ Security/IAM Log Aggregation sheet — pattern cross-account log delivery flow  
-> **Bổ sung**: 5 patterns chưa cover trong Part 1-14
+> **Bổ sung**: 5 patterns chưa cover trong Part 1-15
 
 ---
 
-### E16 — Vertical Sequential Dashed Arrow (sibling ordering)
+### 16.1 — E16: Vertical Sequential Dashed Arrow (sibling ordering)
 
 ```
 edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#CD2264;dashed=1;dashPattern=3 3;
@@ -773,7 +812,7 @@ Dùng khi: Thể hiện **thứ tự / grouping / log delivery sequence** giữa
 
 ---
 
-### E12b — Intra-Account Security Data Flow (thick variant)
+### 16.2 — E12b: Intra-Account Security Data Flow (thick variant)
 
 ```
 edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#C7131F;
@@ -795,7 +834,7 @@ Dùng khi: Active data flow giữa security services **trong cùng account** —
 
 ---
 
-### Case 12: Vertical Trunk with Horizontal Branches
+### 16.3 — Case 12: Vertical Trunk with Horizontal Branches
 
 **Pattern**: 1 edge (hoặc trunk corridor) chạy **VERTICAL** (top → bottom), tại mỗi "tầng" (account level) nó rẽ **HORIZONTAL** sang target.
 
@@ -883,7 +922,7 @@ Khi có 6+ branches từ trunk, dùng Bus Line (S3 pattern) làm visual trunk, r
 
 ---
 
-### Case 3b: Bundled Parallel Merge (N sources → 1 target, corridor style)
+### 16.4 — Case 3b: Bundled Parallel Merge (N sources → 1 target, corridor style)
 
 **Pattern**: Nhiều edges từ N sources chạy **song song rất gần nhau** (bundled) rồi converge vào 1 target. Khác Case 3 (fan-in) ở chỗ các edges travel cùng path một đoạn dài trước khi vào target.
 
@@ -938,7 +977,7 @@ Trong production, pattern thực tế là:
 
 ---
 
-### E17 — Encryption Scope Boundary (KMS dashed container + dependency edge)
+### 16.5 — E17: Encryption Scope Boundary (KMS dashed container + dependency edge)
 
 **Pattern mới**: Dashed rectangle bao quanh target resources + label "SSE-KMS Encryption" + dashed edge từ KMS icon.
 
@@ -991,7 +1030,7 @@ Trong production, pattern thực tế là:
 
 ---
 
-### PART 15.4: Rule #2 Amendment — Cross-Boundary Clarification
+### 16.6 — Rule #2 Clarification: Cross-Boundary
 
 **Original Rule #2**: "LINES MUST NOT CROSS FOREIGN BOUNDARIES — A line MUST NEVER pass through a container it doesn't belong to. Route around."
 
@@ -1034,7 +1073,7 @@ Rule #2 áp dụng cho **INTERMEDIATE containers** — containers mà edge XUYÊ
 
 ---
 
-### PART 15.5: Cross-Account Log Aggregation Pattern (composite)
+### 16.7 — Cross-Account Log Aggregation Pattern (composite)
 
 **Pattern tổng hợp** cho Log Aggregation diagrams — kết hợp Case 12 + Case 3b + E12b + E16 + E17.
 
@@ -1086,47 +1125,6 @@ Rule #2 áp dụng cho **INTERMEDIATE containers** — containers mà edge XUYÊ
 - Vertical gap between buckets: 140-180px (includes label + E16 arrow space)
 - KMS scope dashed box: bao quanh all buckets trong Log Archive, padding 20px
 
----
-
-## PART 16: UPDATED CHECKLIST (append to Part 13)
-
-Bổ sung vào checklist Part 13:
-
-```
-□ Vertical trunk patterns (Case 12): edges chia sẻ trunk X, offset 15px per lane
-□ Bundled parallel (Case 3b): chain + aggregation connector, OR individual parallel edges
-□ Sequential arrows (E16): dashed=1, CÓ arrowhead, strokeWidth=1, strokeColor=#CD2264 (pink)
-□ Cross-boundary: chỉ intermediate containers bị cấm — exit/enter own container OK
-□ Intra-account security flow (E12b): strokeWidth=2 (thick) cho active pipeline
-□ KMS Encryption Scope (E17): dashed container bao quanh targets + dashed edge từ KMS
-□ Aggregation Connector: rectangular element (non-AWS) trước exit point, strokeColor=category
-□ Log aggregation composite: verify E12b (intra) + Case 12 (cross) + E16 (ordering) + E17 (encryption) consistency
-```
-
----
-
-## PART 17: UPDATED DECISION TREE (append to Part 14)
-
-Bổ sung vào decision tree Part 14:
-
-```
-  Log aggregation / multi-target delivery?
-  ├─ Sources cùng account, consolidate rồi gửi → Case 3b Variant B (chain + connector → single output)
-  ├─ Sources cùng account, gửi independent → Case 3b Variant A (parallel edges)
-  ├─ Sources khác account, targets xếp dọc → Case 12 (Vertical Trunk)
-  └─ Ordering giữa targets (không phải data flow) → E16 (Sequential Dashed, #CD2264 pink)
-
-  Security services trong cùng account?
-  ├─ Active pipeline (GD→SH, SH→Firehose) → E12b (thick, solid, #C7131F)
-  └─ Reference/dependency (KMS key ref) → E13 (dashed, thin)
-
-  KMS encrypts multiple targets?
-  ├─ YES → E17 (dashed scope container + dashed dependency edge)
-  └─ NO (1 target) → E4 or E13 (simple dependency edge)
-
-  Aggregation point before exit?
-  ├─ Multiple sources merge into 1 stream → Add Aggregation Connector element
-  └─ Each source sends independently → Individual edges (no connector)
 
   Edge exits/enters container boundary?
   ├─ Source HOẶC target trong container đó → OK (allowed)

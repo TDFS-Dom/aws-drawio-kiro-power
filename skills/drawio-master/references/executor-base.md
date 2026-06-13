@@ -128,7 +128,7 @@ Run ALL checks from `references/validation-rules.md`:
 
 ## 5. Output
 
-Save to `projects/{filename}.drawio`.
+Save to `drawio/{filename}.drawio`.
 
 Report:
 ```
@@ -137,5 +137,5 @@ Report:
 - [x] Template: {name} ({N} styles extracted)
 - [x] XML generated ({N} elements, {N} edges, {N} shapes)
 - [x] Validation passed (8/8 checks)
-- [x] Output: projects/{filename}.drawio
+- [x] Output: drawio/{filename}.drawio
 ```

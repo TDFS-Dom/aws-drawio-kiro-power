@@ -7,8 +7,8 @@
 node_modules/
 
 # Generated outputs (user-specific)
-projects/*
-!projects/.gitkeep
+drawio/*
+!drawio/.gitkeep
 
 # Source pattern files (large .drawio, keep local only)
 draw-patterns/

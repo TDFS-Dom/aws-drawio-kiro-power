@@ -69,7 +69,7 @@ Shall I proceed with this spec?
 
 ## Step 5: Output Spec Files
 
-Write to `projects/{project_name}/`:
+Write to `drawio/{project_name}/`:
 - `design_spec.md` — from `templates/design_spec_reference.md`
 - `spec_lock.md` — from `templates/spec_lock_reference.md`
 

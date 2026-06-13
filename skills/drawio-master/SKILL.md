@@ -31,7 +31,7 @@
 ## 🚨 MANDATORY RULES (14 rules — sorted by priority)
 
 ### Priority A: Visual Quality (most critical — AI violates most often)
-1. **LINES MUST NOT CROSS ICONS** — If any shape sits on the edge path → waypoints to route around. Clearance 20px.
+1. **LINES MUST NOT CROSS ICONS** — If any shape sits on the edge path → waypoints to route around. Clearance 20px. **Container borders are also lines** — if container is too small and its border crosses a child icon → that is the SAME violation. Size containers correctly BEFORE placing icons.
 2. **LINES MUST NOT CROSS FOREIGN BOUNDARIES** — A line MUST NEVER pass through a container it doesn't belong to. Route around.
 3. **LINES MUST HAVE CLEAR DIRECTION** — Every data-flow line must have arrowhead. Bidirectional explicitly uses `endArrow=none`.
 4. **ACCOUNTS USE AWS GROUPS** — Never use `rounded=1;whiteSpace=wrap` for accounts. Always `shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_account`.
@@ -778,7 +778,7 @@ Fix errors → re-validate → Step 6.
 - [x] Template: {id} / Sheet: {name}
 - [x] Styles: ALL from sheet file (0 invented)
 - [x] Validation: passed
-- [x] Output: projects/{filename}.drawio
+- [x] Output: drawio/{filename}.drawio
 ```
 
 ---
@@ -855,7 +855,7 @@ edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;
 
 ## Notes
 
-• Output → `projects/` directory
+• Output → `drawio/` directory
 • Open with: draw.io Desktop, app.diagrams.net, VS Code Draw.io extension
 • Sheet files in `templates/{id}/sheets/` are the ONLY style source
 • AI lost context? Re-read this file: `skills/drawio-master/SKILL.md`

@@ -113,14 +113,14 @@ Run same 8-point validation as main pipeline:
 
 ## Step 5: Output
 
-Save to `projects/{new_filename}.drawio`.
+Save to `drawio/{new_filename}.drawio`.
 
 ```
 ## ✅ Template Fill Complete
 - [x] Source: {source_file} ({N} pages)
 - [x] Changes applied: {N} modifications
 - [x] Validation passed
-- [x] Output: projects/{new_filename}.drawio
+- [x] Output: drawio/{new_filename}.drawio
 
 Styles preserved from source. Open with draw.io to verify.
 ```

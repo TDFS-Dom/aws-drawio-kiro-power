@@ -63,10 +63,10 @@ AI: 📐 DESIGN SPEC
 
 You: Go
 
-AI: ✅ Diagram Complete — projects/Network_HLD.drawio
+AI: ✅ Diagram Complete — drawio/Network_HLD.drawio
 ```
 
-**Output:** `.drawio` file saved to `projects/`. Open with draw.io Desktop (recommended).
+**Output:** `.drawio` file saved to `drawio/`. Open with draw.io Desktop (recommended).
 
 ### 4. Opening Generated Files
 
@@ -118,7 +118,7 @@ aws-drawio-kiro-power/
 │   │   └── *.drawio (4 files)
 │   └── workflows/                   # Standalone sub-workflows
 │       └── design-spec.md
-├── projects/                        # Generated diagram outputs
+├── drawio/                        # Generated diagram outputs
 ├── examples/                        # Example outputs
 ├── docs/                            # Documentation
 ├── POWER.md                         # Kiro Power entry point

@@ -28,7 +28,7 @@ This file defines the complete 6-step pipeline:
 - **NEVER** invent styles — only use what's extracted from template sheets
 - **ALWAYS** read the specific sheet file from `templates/{id}/sheets/` before generating
 - **ALWAYS** run `validate_drawio.py` after generation
-- Output saves to `projects/` directory
+- Output saves to `drawio/` directory
 
 ## Quick Reference
 

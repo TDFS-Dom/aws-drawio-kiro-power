@@ -21,10 +21,10 @@ python3 ${SKILL_DIR}/scripts/extract_styles.py --all
 python3 ${SKILL_DIR}/scripts/extract_styles.py templates/networking/ACB_Networking_diagrams\ .drawio --output styles.md
 
 # Validate a generated .drawio file
-python3 ${SKILL_DIR}/scripts/validate_drawio.py projects/my_diagram.drawio
+python3 ${SKILL_DIR}/scripts/validate_drawio.py drawio/my_diagram.drawio
 
 # Auto-fix validation errors
-python3 ${SKILL_DIR}/scripts/validate_drawio.py projects/my_diagram.drawio --fix
+python3 ${SKILL_DIR}/scripts/validate_drawio.py drawio/my_diagram.drawio --fix
 
 # Create a new project
 python3 ${SKILL_DIR}/scripts/project_manager.py init my_project

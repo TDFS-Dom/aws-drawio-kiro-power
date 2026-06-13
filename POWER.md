@@ -44,7 +44,7 @@ AI: 📐 DESIGN SPEC
 
 You: Go
 
-AI: ✅ Diagram Complete — projects/Network_Connectivity.drawio
+AI: ✅ Diagram Complete — drawio/Network_Connectivity.drawio
 ```
 
 ## Pipeline
@@ -68,7 +68,7 @@ Step 2: Design Spec ⛔ BLOCKING → present & wait for user OK
 Step 3: Load Sheet Styles       → read templates/{id}/sheets/{NN}.md
 Step 4: XML Generation          → copy styles from sheet file
 Step 5: Validation              → python3 scripts/validate_drawio.py
-Step 6: Output                  → save to projects/
+Step 6: Output                  → save to drawio/
 ```
 
 **Full pipeline definition**: `skills/drawio-master/SKILL.md`
@@ -126,7 +126,7 @@ aws-drawio-kiro-power/
 │       └── template-fill-drawio.md
 ├── steering/                         # Kiro Power steering files
 │   └── drawio-master.md              # Entry point → SKILL.md
-├── projects/                         # Generated diagram outputs
+├── drawio/                           # Generated diagram outputs
 ├── POWER.md                          # This file (Kiro Power entry)
 ├── README.md                         # User-facing readme
 ├── icon.svg

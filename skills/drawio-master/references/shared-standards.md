@@ -1,4 +1,4 @@
-# ACB Diagram Standards
+# Shared Diagram Standards
 
 > Extracted from 4 reference .drawio template files (128+ pages). This is the SINGLE SOURCE OF TRUTH for all styles.
 > NEVER invent styles. ONLY use what's documented here.

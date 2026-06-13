@@ -49,7 +49,7 @@ You: Vẽ diagram network connectivity từ on-prem qua Transit Gateway tới c�
 
 AI: 📐 DESIGN SPEC
     [Diagram Type]    Network Design
-    [Template]        ACB_Networking_diagrams .drawio (HLD sheet)
+    [Template]        networking-diagrams.drawio (HLD sheet)
     [Canvas]          850×1100, grid=10
     [Scope]           On-prem DC → Direct Connect → Transit Gateway → VPCs
     [Accounts]        Network Account
@@ -57,13 +57,13 @@ AI: 📐 DESIGN SPEC
     [Flow Direction]  Left→Right (On-prem → AWS)
     [Edge Style]      Orange (#D79B00) = DX connections, Green (#82B366) = Prod
     [Pages]           1
-    [Output File]     ACB_Network_HLD.drawio
+    [Output File]     Network_HLD.drawio
 
     Shall I proceed with this spec?
 
 You: Go
 
-AI: ✅ Diagram Complete — projects/ACB_Network_HLD.drawio
+AI: ✅ Diagram Complete — projects/Network_HLD.drawio
 ```
 
 **Output:** `.drawio` file saved to `projects/`. Open with draw.io Desktop (recommended).
@@ -95,9 +95,9 @@ Full pipeline definition: `skills/drawio-master/SKILL.md`
 
 | Template | Type | Pages | Use When |
 |---|---|---|---|
-| `ACB _ OU Design 1.drawio` | OU Hierarchy | 1 | Organization structure, OU tree |
-| `ACB-SWO_AWS LZ_Security and IAM Design_20260317.drawio` | Security | 10 | Security delegation, IAM, logging |
-| `ACB_Networking_diagrams .drawio` | Networking | 42 | VPC, TGW, routing, connectivity |
+| `ou-design.drawio` | OU Hierarchy | 1 | Organization structure, OU tree |
+| `security-iam-design.drawio` | Security | 10 | Security delegation, IAM, logging |
+| `networking-diagrams.drawio` | Networking | 42 | VPC, TGW, routing, connectivity |
 | `AFT.drawio` | Process/Flow | 42 | Account vending, CI/CD, automation |
 
 ## Repository Structure
@@ -107,7 +107,7 @@ aws-drawio-kiro-power/
 ├── skills/drawio-master/
 │   ├── SKILL.md                     # Core pipeline definition
 │   ├── references/                  # Technical docs (AI reads on-demand)
-│   │   ├── acb-standards.md         # Extracted styles from templates
+│   │   ├── shared-standards.md         # Extracted styles from templates
 │   │   ├── aws-icons.md             # AWS icon catalog
 │   │   ├── validation-rules.md      # Post-draw validation
 │   │   ├── branding.md              # Company colours
@@ -133,7 +133,7 @@ aws-drawio-kiro-power/
 |---|---|---|
 | 📘 | `skills/drawio-master/SKILL.md` | Core workflow and rules |
 | 📐 | `skills/drawio-master/templates/templates_index.md` | Template selection guide |
-| 🎨 | `skills/drawio-master/references/acb-standards.md` | Visual standards reference |
+| 🎨 | `skills/drawio-master/references/shared-standards.md` | Visual standards reference |
 | 🔍 | `skills/drawio-master/references/aws-icons.md` | AWS icon catalog |
 | ✅ | `skills/drawio-master/references/validation-rules.md` | Validation checklist |
 

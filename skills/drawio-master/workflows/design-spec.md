@@ -30,9 +30,9 @@ Use `templates/README.md` selection table:
 
 | Primary Topic | Template ID | File |
 |---|---|---|
-| OU, org hierarchy | `ou-hierarchy` | `ACB _ OU Design 1.drawio` |
-| Security, IAM | `security-iam` | `ACB-SWO_AWS LZ_Security and IAM Design_20260317.drawio` |
-| VPC, networking, TGW | `networking` | `ACB_Networking_diagrams .drawio` |
+| OU, org hierarchy | `ou-hierarchy` | `ou-design.drawio` |
+| Security, IAM | `security-iam` | `security-iam-design.drawio` |
+| VPC, networking, TGW | `networking` | `networking-diagrams.drawio` |
 | Pipeline, CI/CD, automation | `aft-pipeline` | `AFT.drawio` |
 
 ## Step 3: Present Design Spec

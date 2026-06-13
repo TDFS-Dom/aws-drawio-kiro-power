@@ -37,14 +37,14 @@ You: Vẽ diagram cho network connectivity giữa on-prem và AWS qua Transit Ga
 
 AI: 📐 DESIGN SPEC
     [Diagram Type]    Network Design
-    [Template]        ACB_Networking_diagrams .drawio
+    [Template]        networking-diagrams.drawio
     [Scope]           On-prem → DX → TGW → VPCs (hub-spoke)
     ...
     Shall I proceed with this spec?
 
 You: Go
 
-AI: ✅ Diagram Complete — projects/ACB_Network_Connectivity.drawio
+AI: ✅ Diagram Complete — projects/Network_Connectivity.drawio
 ```
 
 ## Pipeline
@@ -98,7 +98,7 @@ aws-drawio-kiro-power/
 │   ├── SKILL.md                      # Core pipeline definition
 │   ├── references/                   # Technical docs (AI reads on-demand)
 │   │   ├── draw-patterns.md          # Generic patterns lookup (edges, containers, icons)
-│   │   ├── acb-standards.md          # Visual standards + anti-patterns
+│   │   ├── shared-standards.md          # Visual standards + anti-patterns
 │   │   ├── aws-icons.md              # AWS icon catalog
 │   │   ├── validation-rules.md       # Post-draw validation rules
 │   │   ├── strategist.md             # Strategist role definition

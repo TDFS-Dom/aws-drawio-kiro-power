@@ -1,6 +1,6 @@
 # Executor Common Guidelines
 
-> Technical constraints are in `references/acb-standards.md` and `references/validation-rules.md`.
+> Technical constraints are in `references/shared-standards.md` and `references/validation-rules.md`.
 
 ---
 
@@ -14,12 +14,12 @@
 |---|---|
 | Template .drawio file | `templates/diagrams/{template_file}` |
 | Spec lock | `<project_path>/spec_lock.md` |
-| ACB standards | `references/acb-standards.md` |
+| Shared standards | `references/shared-standards.md` |
 | Icon catalog | `references/aws-icons.md` (verify names only) |
 
 **Forbidden — re-reading during generation**:
 - Template file already loaded
-- ACB standards already loaded
+- Shared standards already loaded
 
 `spec_lock.md` is re-read before starting XML generation.
 

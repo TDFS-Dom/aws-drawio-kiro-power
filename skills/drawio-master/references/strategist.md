@@ -26,9 +26,9 @@ Match user request to one of 4 templates:
 
 | Topic | Template |
 |---|---|
-| OU, org hierarchy | `ou-hierarchy` → `ACB _ OU Design 1.drawio` |
-| Security, IAM, delegation | `security-iam` → `ACB-SWO_AWS LZ_Security and IAM Design_20260317.drawio` |
-| VPC, networking, TGW | `networking` → `ACB_Networking_diagrams .drawio` |
+| OU, org hierarchy | `ou-hierarchy` → `ou-design.drawio` |
+| Security, IAM, delegation | `security-iam` → `security-iam-design.drawio` |
+| VPC, networking, TGW | `networking` → `networking-diagrams.drawio` |
 | CI/CD, automation, pipeline | `aft-pipeline` → `AFT.drawio` |
 
 ### b. Canvas Format
@@ -68,7 +68,7 @@ From template reference, determine:
 
 ### g. Output Filename
 
-Convention: `ACB_{DiagramTopic}_{OptionalDetail}.drawio`
+Convention: `{ProjectName}_{DiagramTopic}.drawio`
 
 ---
 

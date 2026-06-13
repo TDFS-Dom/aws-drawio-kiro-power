@@ -265,6 +265,139 @@ Implementation: each edge shares a common X-coordinate for waypoints, offset by 
 
 **Trunk corridor width**: 50-80px between source containers and target containers. Each edge occupies a "lane" offset by 15px from its neighbor.
 
+---
+
+### 🚨 EDGE ROUTING CASES (11 patterns — pick the right one)
+
+| # | Case | When | Trunk? | Waypoints? |
+|---|---|---|---|---|
+| 1 | **One-to-One** | A → B (single connection) | No | No (auto-route) |
+| 2 | **One-to-Many** (fan-out) | KMS → 4 buckets | No | Yes (offset 20px per edge) |
+| 3 | **Many-to-One** (fan-in) | GuardDuty + Config → Security Hub | No | Yes (stagger entryY) |
+| 4 | **Many-to-Many** | 3 accounts → 4 buckets | Yes | Yes (per-lane X, per-target Y) |
+| 5 | **Chain** | Pipeline → Build → Deploy | No | No (sequential) |
+| 6 | **Same-container** | Service → Service (same account) | No | No (auto-route) |
+| 7 | **Cross-account adjacent** | Account A → Account B (neighbors) | No | exit/entry points |
+| 8 | **Cross-account distant** | Account A → Account C (skip B) | Yes | Yes (route around B) |
+| 9 | **Bidirectional** | On-prem ↔ TGW | No | endArrow=none |
+| 10 | **Dependency** | KMS encrypts S3 | No | dashed, thin |
+| 11 | **Hub-spoke** | TGW ← many VPCs | No | Each spoke separate edge |
+
+#### Case 1: One-to-One
+```
+[A] ────→ [B]
+```
+Auto-route. No waypoints needed unless containers between them.
+
+#### Case 2: One-to-Many (fan-out)
+```
+         ┌──→ [T1]    exitY=0.3
+[Source] ─┼──→ [T2]    exitY=0.5
+         └──→ [T3]    exitY=0.7
+```
+- Each edge exits at different Y offset
+- Waypoints: stagger X by 20px per edge
+- Targets stacked vertically → entry at entryX=0;entryY=0.5 each
+
+#### Case 3: Many-to-One (fan-in)
+```
+[S1] ──┐     entryY=0.2
+[S2] ──┼──→ [Target]   entryY=0.5
+[S3] ──┘     entryY=0.8
+```
+- Each source enters target at different Y
+- Never merge 2 edges into same entry point
+
+#### Case 4: Many-to-Many (trunk corridor) — MOST COMPLEX
+```
+[S1] ──┐     ┌──→ [T1]
+[S2] ──┼─────┼──→ [T2]
+[S3] ──┘     └──→ [T3]
+       ↑ corridor
+```
+**Rules:**
+1. Each source gets own X-lane: x=500, x=520, x=540 (offset 20px)
+2. Each target gets own entry Y: entryY=0.2, 0.4, 0.6, 0.8
+3. Color per source account (not per target)
+4. Corridor placement: midpoint between source and target columns
+
+```xml
+<!-- Source 1 → Target 1: lane x=500 -->
+<mxCell id="e-s1-t1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#8C4FFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.2;entryDx=0;entryDy=0;" edge="1" parent="1" source="s1" target="t1">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="500" y="100" />
+      <mxPoint x="500" y="80" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+
+<!-- Source 2 → Target 2: lane x=520 -->
+<mxCell id="e-s2-t2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#CD2264;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="s2" target="t2">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="520" y="300" />
+      <mxPoint x="520" y="250" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+```
+
+#### Case 5: Chain (sequential)
+```
+[A] ──→ [B] ──→ [C] ──→ [D]
+```
+Simple sequential edges. Each edge independent.
+
+#### Case 6: Same-container
+```
+┌─────────────────────────┐
+│  [A] ────→ [B]          │
+└─────────────────────────┘
+```
+Auto-route. Both elements share same parent. No exit/entry needed.
+
+#### Case 7: Cross-account adjacent
+```
+┌────────┐    ┌────────┐
+│   [A]  │───→│  [B]   │
+└────────┘    └────────┘
+```
+Add exit/entry: `exitX=1;exitY=0.5;entryX=0;entryY=0.5`
+
+#### Case 8: Cross-account distant (skip intermediate)
+```
+┌──────┐    ┌──────┐    ┌──────┐
+│ [A]  │    │ SKIP │    │ [B]  │
+└──────┘    └──────┘    └──────┘
+     └──── waypoints route ABOVE or BELOW ────→
+```
+MUST use waypoints to route around the middle container.
+
+#### Case 9: Bidirectional
+```
+[On-prem] ═══════ [TGW]
+```
+`endArrow=none;endFill=0` — no arrowhead either end.
+
+#### Case 10: Dependency/Reference
+```
+[KMS] ┄┄┄┄┄ [S3 Bucket]
+```
+`strokeWidth=1;dashed=1;dashPattern=3 3` — thin short dash.
+Route SEPARATELY from data flow lines (different Y band or X lane).
+
+#### Case 11: Hub-spoke
+```
+         [VPC1]
+          ↑ exitY=0.2
+[VPC2] ← [TGW] → [VPC3]
+  exitX=0     exitX=1
+          ↓ exitY=0.8
+         [VPC4]
+```
+Central hub has multiple exit points. Each spoke = separate edge with unique exit coordinates.
+
 #### When to use waypoints vs auto-routing:
 
 | Scenario | Approach |

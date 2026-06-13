@@ -41,4 +41,14 @@ This file defines the complete 6-step pipeline:
 
 ## File Reference
 
-#[[file:skills/drawio-master/SKILL.md]]
+All skill files are relative to this power's root directory:
+
+```
+skills/drawio-master/SKILL.md              ← Full pipeline (THIS content below)
+skills/drawio-master/references/           ← Technical docs
+skills/drawio-master/templates/{id}/       ← Template folders
+skills/drawio-master/templates/{id}/sheets/ ← Per-sheet style files
+skills/drawio-master/scripts/              ← Validation scripts
+```
+
+**To find SKILL.md**: it is at `skills/drawio-master/SKILL.md` relative to the workspace root where this power is installed.

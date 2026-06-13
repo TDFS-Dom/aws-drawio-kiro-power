@@ -49,16 +49,29 @@ AI: ✅ Diagram Complete — projects/ACB_Network_Connectivity.drawio
 
 ## Pipeline
 
-See `skills/drawio-master/SKILL.md` for the full execution pipeline.
+The full execution pipeline is defined in `skills/drawio-master/SKILL.md`. Key rules inline:
 
+### 🚨 EXECUTION DISCIPLINE
+
+**You are NOT a designer. You are a COPIER.** Every style string in output XML MUST come from `skills/drawio-master/templates/{id}/sheets/*.md`.
+
+**FORBIDDEN:**
+- ❌ `rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc` ← use AWS group containers
+- ❌ `shape=document` / `shape=hexagon` / `shape=cylinder3` ← use `mxgraph.aws4.*`
+- ❌ Colors `#dae8fc`, `#d5e8d4`, `#fff2cc` ← use `#CD2264`, `#8C4FFF`, `#BC1356`
+- ❌ `rounded=1` on edges ← always `rounded=0`
+
+**Pipeline:**
 ```
-Step 1: Request Analysis
-Step 2: Design Spec Confirmation  ⛔ BLOCKING
-Step 3: Reference Loading
-Step 4: XML Generation
-Step 5: Validation
-Step 6: Output
+Step 1: Request Analysis        → match template
+Step 2: Design Spec ⛔ BLOCKING → present & wait for user OK
+Step 3: Load Sheet Styles       → read templates/{id}/sheets/{NN}.md
+Step 4: XML Generation          → copy styles from sheet file
+Step 5: Validation              → python3 scripts/validate_drawio.py
+Step 6: Output                  → save to projects/
 ```
+
+**Full pipeline definition**: `skills/drawio-master/SKILL.md`
 
 ## Opening Generated Files
 

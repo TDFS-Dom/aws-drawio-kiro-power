@@ -307,6 +307,123 @@ text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;s
 
 ---
 
+## GEOMETRY & SPACING RULES (prevents icons outside containers & text overlap)
+
+### 🚨 THE #1 BUG: Icons fall outside container boundaries
+
+**Root cause**: AI sets container width/height too small for the icons + labels inside.
+
+**MANDATORY CALCULATION before writing XML:**
+
+```
+Container minimum width  = (number_of_icons_horizontal × icon_width) + (gaps × (n-1)) + (padding_left + padding_right)
+Container minimum height = (number_of_icons_vertical × (icon_height + label_height)) + (gaps × (n-1)) + (padding_top + padding_bottom)
+```
+
+### Sizing Constants (from templates)
+
+| Element | Size | Notes |
+|---|---|---|
+| AWS resource icon | 78×78 px | Standard. Use 50×50 for compact |
+| Icon label height | 30 px | Below icon (`verticalLabelPosition=bottom`) |
+| Icon total height (icon + label) | **108 px** | 78 + 30 |
+| Container top padding (for title) | **40 px** | Account/VPC title takes 40px |
+| Container side padding | **30 px** | Left + right |
+| Gap between icons (horizontal) | **40 px** minimum | Never less |
+| Gap between icons (vertical) | **30 px** minimum | Between icon+label groups |
+
+### Container Sizing Formula
+
+**1 icon inside container:**
+```
+width  = 30 (left) + 78 (icon) + 30 (right) = 138 px minimum
+height = 40 (title) + 78 (icon) + 30 (label) + 20 (bottom) = 168 px minimum
+```
+
+**3 icons horizontal:**
+```
+width  = 30 + 78 + 40 + 78 + 40 + 78 + 30 = 374 px minimum
+height = 40 + 78 + 30 + 20 = 168 px minimum
+```
+
+**3 icons vertical:**
+```
+width  = 30 + 78 + 30 = 138 px minimum
+height = 40 + (78+30) + 30 + (78+30) + 30 + (78+30) + 20 = 444 px minimum
+```
+
+### Icon Placement Rules
+
+**Relative to parent container (when `parent=container_id`):**
+```xml
+<!-- First icon: x=30, y=40 (below title) -->
+<mxCell ... parent="container-id">
+  <mxGeometry x="30" y="40" width="78" height="78" as="geometry" />
+</mxCell>
+
+<!-- Second icon horizontal: x=148, y=40 (30+78+40=148) -->
+<mxCell ... parent="container-id">
+  <mxGeometry x="148" y="40" width="78" height="78" as="geometry" />
+</mxCell>
+
+<!-- Second icon vertical: x=30, y=148 (40+78+30=148) -->
+<mxCell ... parent="container-id">
+  <mxGeometry x="30" y="148" width="78" height="78" as="geometry" />
+</mxCell>
+```
+
+### Label Overlap Prevention
+
+**Problem from screenshot**: "DNS Query Logs" text overlaps with icon below it.
+
+**Rules:**
+1. Icon label = 30px height reserved BELOW icon
+2. Next icon starts at: `previous_icon_y + 78 (icon) + 30 (label) + 30 (gap) = +138px`
+3. NEVER place icon at `previous_y + 100` — too close, labels WILL overlap
+4. Safe vertical spacing between icon centers: **138px minimum** (78+30+30)
+5. Safe horizontal spacing between icon centers: **118px minimum** (78+40)
+
+### Container Boundary Check (MANDATORY before finalizing)
+
+**For EVERY icon in the diagram, verify:**
+```
+icon_x + icon_width  ≤  parent_container_width - padding_right
+icon_y + icon_height + label_height  ≤  parent_container_height - padding_bottom
+```
+
+**Example check:**
+```
+Container: x=100, y=100, width=300, height=200
+Icon:      x=250, y=140, width=78, height=78 (relative to container)
+
+Check horizontal: 250 + 78 = 328 > 300 ❌ OVERFLOW! → reduce icon x or increase container width
+Check vertical:   140 + 78 + 30 = 248 > 200 ❌ OVERFLOW! → reduce icon y or increase container height
+```
+
+### Text Outside Container (CRITICAL)
+
+**"delivery.logs.amazonaws.com" text in screenshot bleeds outside account boundary.**
+
+**Rules:**
+1. ALL text/label cells that belong to a container MUST have `parent="{container_id}"`
+2. Text cells at container boundary → place INSIDE with 10px clearance
+3. If text is too long → use `&#xa;` to wrap, or reduce fontSize
+4. External annotations (outside all containers) → use `parent="1"` (root level)
+
+### Account Container Minimum Sizes (from reference diagrams)
+
+| Content | Minimum Width | Minimum Height |
+|---|---|---|
+| 1 service icon | 200 | 180 |
+| 2 icons horizontal | 350 | 180 |
+| 3 icons horizontal | 500 | 180 |
+| 2 icons vertical | 200 | 320 |
+| 3 icons vertical | 200 | 460 |
+| Region + 2 icons | 400 | 350 |
+| VPC + subnets + icons | 500 | 400 |
+
+---
+
 ## Template Index
 
 | ID | Folder | Sheets | Use When |
@@ -432,7 +549,9 @@ Shall I proceed?
 - [ ] Edge `strokeColor` matches source service category color
 - [ ] Cross-account edges (2+ hops) have waypoints or exit/entry points
 - [ ] No `<br>` or HTML tags in value — use `&#xa;`
-- [ ] No text overlap (check geometry)
+- [ ] No text overlap (check geometry — vertical gap ≥ 138px between icon centers)
+- [ ] **ALL icons inside parent container bounds** (icon_x+78 ≤ container_width-30, icon_y+108 ≤ container_height-20)
+- [ ] **Container sized correctly** (use formula from GEOMETRY section)
 
 ✅ XML written → Step 5.
 
@@ -458,9 +577,11 @@ python3 ${SKILL_DIR}/scripts/validate_drawio.py <file.drawio>
 | 5 | No `shape=document/hexagon/cylinder3` | Using generic shapes |
 | 6 | No invented colors | Using `#dae8fc`, `#d5e8d4` |
 | 7 | Z-order: containers → edges → shapes | Mixing order |
-| 8 | No text overlap | Elements too close |
-| 9 | Containers enclose children | Children outside bounds |
+| 8 | No text overlap | Icons vertical gap < 138px |
+| 9 | Containers enclose children | icon_x+78 > container_width |
 | 10 | Edge strokeColor matches source category | Wrong color for flow type |
+| 11 | **Icons inside bounds** | icon bleeds outside container |
+| 12 | **Labels don't overlap icons below** | Vertical spacing too tight |
 
 Fix errors → re-validate → Step 6.
 

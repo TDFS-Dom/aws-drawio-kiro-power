@@ -207,6 +207,34 @@ When 3+ edges flow from left accounts to right accounts, stagger them vertically
 3. Use exit/entry points to force edges to leave/enter from specific sides
 4. For fan-out (1 source → many targets), offset waypoints by 20px per edge
 
+**🚨 WAYPOINT COORDINATE SYSTEM (Critical — AI fails this repeatedly):**
+
+Waypoint `<mxPoint x="" y="">` values are ALWAYS in **ABSOLUTE canvas coordinates** — regardless of edge parent.
+
+When source/target icons are nested in containers, their ABSOLUTE position = sum of all parent container positions + icon's relative geometry:
+
+```
+icon_absolute_x = grandparent.x + parent.x + icon.x
+icon_absolute_y = grandparent.y + parent.y + icon.y
+```
+
+**Example**: Icon at x=172, y=200 inside c-kms-scope → c-region → c-logarchive:
+- c-logarchive: x=860, y=40
+- c-region (child): x=20, y=35
+- c-kms-scope (grandchild): x=20, y=35
+- Icon ABSOLUTE = (860+20+20+172, 40+35+35+200) = **(1072, 310)**
+
+**DECISION: When to use waypoints vs auto-route:**
+
+| Scenario | Approach |
+|---|---|
+| Single edge, no obstacles between containers | ❌ NO waypoints — exit/entry + auto-route |
+| Fan-in: 2+ edges to same target from same side | ✅ Waypoints + stagger entryY |
+| Intermediate container blocking path | ✅ Waypoints to bypass |
+| Parallel edges that would auto-route to overlap | ✅ Waypoints with lane offset |
+
+**ANTI-PATTERN**: Waypoints with Y values that differ by <20px from exit/entry Y. This causes jitter, not clean routing. If waypoint Y ≈ exit Y → remove waypoint, use auto-route.
+
 #### Pattern: Fan-out from single source (e.g., KMS → 4 buckets)
 
 When one service connects to multiple targets stacked vertically:
@@ -749,7 +777,12 @@ IF brain NOT available → proceed with file reading only (standard mode).
 - [ ] `edgeStyle=orthogonalEdgeStyle` on ALL edges (no exceptions)
 - [ ] Edge type correct: data flow (solid/2px) vs dependency (dashed/1px) vs hierarchy (default)
 - [ ] Edge `strokeColor` matches source service category color
-- [ ] Cross-account edges (2+ hops) have waypoints or exit/entry points
+- [ ] Cross-account edges have explicit exit/entry points (exitX/exitY/entryX/entryY)
+- [ ] Waypoints ONLY used when needed (fan-in overlap, intermediate obstacle, parallel edges)
+- [ ] Waypoint coordinates are ABSOLUTE (sum all parent container positions)
+- [ ] Waypoint Y differs >20px from source exit Y (otherwise remove waypoint)
+- [ ] Fan-in edges: stagger entryY per target (0.3/0.7 for 2 sources, 0.2/0.5/0.8 for 3)
+- [ ] Dashed edges route at separate X band (30px+ from solid edges)
 - [ ] No `<br>` or HTML tags in value — use `&#xa;`
 - [ ] `html=1` present in EVERY cell style
 - [ ] NO XML comments (`<!-- -->`) in output — zero comments

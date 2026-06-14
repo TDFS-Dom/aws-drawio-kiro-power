@@ -713,7 +713,7 @@ IF brain NOT available → proceed with file reading only (standard mode).
 **Write order (MANDATORY):**
 
 ```xml
-<mxfile host="app.diagrams.net" modified="..." agent="Claude Code" version="24.0.0" type="device">
+<mxfile host="app.diagrams.net" modified="..." agent="Kiro" version="24.0.0" type="device">
   <diagram id="..." name="...">
     <mxGraphModel dx="..." dy="..." grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>

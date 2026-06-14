@@ -668,6 +668,128 @@ Legend lines dùng `sourcePoint`/`targetPoint` trực tiếp (không có source/
 | Edge đi qua container không thuộc về | Route xung quanh container |
 | Edge chồng lên icon (clearance < 20px) | Waypoints để route vòng |
 | Nhiều parallel edges cùng path (overlap) | Stagger 20px per edge |
+
+---
+
+## PART 13b: LINE ROUTING ANTI-PATTERNS (AI hay tạo ra — BẮT BUỘC tránh)
+
+> Những lỗi routing dưới đây xảy ra khi AI để draw.io auto-route thay vì explicitly control waypoints. **PHẢI detect và tránh TRƯỚC KHI viết XML.**
+
+### ❌ AP-1: Vertical trunk xuyên qua intermediate accounts
+
+**Lỗi**: Line chạy thẳng đứng xuyên qua account container mà source/target đều KHÔNG thuộc về.
+
+```
+┌── Member ──────┐
+│   [source]     │
+└───────┼────────┘   ← exits OK
+        │
+┌───────┼────────┐   ← XUYÊN QUA Security Account ❌
+│       │        │
+└───────┼────────┘
+        │
+┌───────┼────────┐
+│       ▼        │
+│   [target]     │   ← enters OK
+└────────────────┘
+```
+
+**Fix**: Route NGOÀI tất cả intermediate containers (bên phải hoặc trái):
+
+```
+┌── Member ──────┐
+│   [source]─────┼───┐
+└────────────────┘   │  ← route OUTSIDE (x = rightmost + 40px)
+                     │
+┌── Security ────┐   │  ← edge bypasses this container ✅
+│                │   │
+└────────────────┘   │
+                     │
+┌── Target ──────┐   │
+│   [target]←────┼───┘
+└────────────────┘
+```
+
+**Waypoint X** = max(all container right edges) + 40px
+
+---
+
+### ❌ AP-2: Multiple edges chồng tại cùng X/Y (spaghetti)
+
+**Lỗi**: 3+ edges chạy vertical cùng X coordinate → nhìn như 1 đường dày, không phân biệt được.
+
+**Fix**: Mỗi edge = 1 lane riêng, offset 20px:
+- Edge 1: x=500 (lane 1)
+- Edge 2: x=520 (lane 2)
+- Edge 3: x=540 (lane 3)
+
+**Corridor width** = N edges × 20px. Plan corridor TRƯỚC khi viết XML.
+
+---
+
+### ❌ AP-3: Edge zigzag 3+ turns khi 1-2 turns đủ
+
+**Lỗi**: Waypoints không tối ưu → edge đi vòng vèo qua nhiều góc vuông.
+
+**Fix**: Mỗi edge tối đa **2 turns** (exit → horizontal → vertical → entry). Nếu cần 3+ turns → layout containers sai, cần re-arrange containers TRƯỚC.
+
+---
+
+### ❌ AP-4: Fan-in edges chồng nhau thành 1 khối
+
+**Lỗi**: VPC + DNS + TGW → cùng 1 bucket, 3 edges chạy cùng path → trông như 1 line dày.
+
+**Fix A (detailed)**: Stagger entryY (0.25 / 0.50 / 0.75) + stagger waypoint X (offset 20px per edge).
+
+**Fix B (HLD)**: Dùng 1 Grouped Arrow `strokeWidth=4` với label "VPC Flow, DNS, TGW Logs".
+
+---
+
+### ❌ AP-5: Dashed edge (dependency) overlap với solid edge (data flow)
+
+**Lỗi**: KMS dashed line chạy cùng path với Firehose solid line → không phân biệt.
+
+**Fix**: Dashed edges route ở Y band KHÁC, minimum **30px offset** từ nearest solid edge. Dependency lines LUÔN ở separate visual layer.
+
+---
+
+### ❌ AP-6: Edge hugs container border (trông như double border)
+
+**Lỗi**: Edge exit bottom → chạy dọc theo border → trông như border bị double.
+
+**Fix**: Ưu tiên exit RIGHT (`exitX=1;exitY=0.5`) cho left→right flows. Chỉ exit BOTTOM khi target thực sự ở phía dưới VÀ không có intermediate container.
+
+---
+
+### ❌ AP-7: Thiếu exit/entry points → auto-route tạo detour
+
+**Lỗi**: AI không set exit/entry → draw.io tự chọn exit point → đường đi vô nghĩa.
+
+**Fix**: **MỌI cross-account edge BẮT BUỘC có explicit exit/entry:**
+```
+exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;
+```
+
+Không explicit exit/entry = auto-route gamble. KHÔNG chấp nhận.
+
+---
+
+### 🚨 MANDATORY: Pre-XML Edge Planning
+
+**TRƯỚC KHI viết bất kỳ edge XML nào**, list plan:
+
+```
+EDGE PLAN:
+1. [source] → [target] | type: solid/dashed | direction: L→R/T→B | lane: N | intermediate containers to avoid: [...] | exit/entry: explicit
+2. ...
+```
+
+**Verify plan:**
+- [ ] Mỗi edge có lane riêng (không overlap neighbor)
+- [ ] Không edge nào cross intermediate container
+- [ ] Dashed edges ở separate Y/X band từ solid edges
+- [ ] Mọi cross-account edge có explicit exit/entry
+- [ ] Max 2 turns per edge
 | Edge không có `source` và `target` (ngoài Bus/Legend exception) | Luôn set source và target |
 | `parent="1"` cho edge trong cùng container | `parent="container-id"` khi source và target cùng cha |
 | Thiếu `relative="1"` trong mxGeometry | `<mxGeometry relative="1" as="geometry" />` |

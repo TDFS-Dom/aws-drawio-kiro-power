@@ -65,3 +65,101 @@ CONTAINER_RIGHT_MARGIN       = 81 px (median)
 CONTAINER_BOTTOM_MARGIN      = 50 px (median)
 MOST_COMMON_ICON_SIZE        = 78x78 (203x used)
 ```
+
+
+---
+
+## 6. LABEL-AWARE SPACING (MANDATORY — AI frequently violates)
+
+> **Research basis**: Failed diagram where 3 icons horizontal with long labels ("VPC Flow Logs", "DNS Query Logs", "TGW Flow Logs") overlapped into unreadable text.
+
+### The Problem
+
+Icons using `verticalLabelPosition=bottom` render a text label BELOW the icon. The label width is determined by text length × font size, NOT by the icon width. When icons are placed horizontally with standard gap (60px), labels overflow into adjacent icons' label space.
+
+### Label Width Estimation
+
+```
+label_pixel_width ≈ character_count × 7.2  (for fontSize=12, average character width)
+```
+
+| Example Label | Chars | Estimated Width | Icon Width | Overflow? |
+|---|---|---|---|---|
+| "S3" | 2 | 14px | 78px | ❌ No |
+| "KMS" | 3 | 22px | 78px | ❌ No |
+| "GuardDuty" | 9 | 65px | 78px | ❌ No |
+| "VPC Flow Logs" | 13 | 94px | 78px | ⚠️ Tight |
+| "DNS Query Logs" | 14 | 101px | 78px | ✅ YES — overflow 23px |
+| "Kinesis Firehose" | 16 | 115px | 78px | ✅ YES — overflow 37px |
+| "CT CloudTrail Bucket" | 20 | 144px | 75px | ✅ YES — overflow 69px |
+
+### Rule G-LABEL-1: Minimum horizontal gap MUST account for label width
+
+```
+required_gap = max(HORIZONTAL_GAP, (max_label_width - icon_width) + 20px)
+```
+
+**Decision matrix:**
+
+| Max label length (chars) | Required horizontal gap | Icon size 78px → center-to-center |
+|---|---|---|
+| ≤ 10 chars | 60px (standard) | 138px |
+| 11-14 chars | 80px | 158px |
+| 15-18 chars | 100px | 178px |
+| 19+ chars | 120px+ OR use line break `&#xa;` | 198px+ |
+
+### Rule G-LABEL-2: Use line break for long labels
+
+When label exceeds 14 characters, PREFER splitting with `&#xa;` (XML newline):
+
+```xml
+<!-- ❌ WRONG — label "CT CloudTrail Bucket" is 20 chars, will overlap neighbors -->
+<mxCell value="CT CloudTrail Bucket" .../>
+
+<!-- ✅ CORRECT — split into 2 lines, each ≤14 chars -->
+<mxCell value="CT CloudTrail&#xa;Bucket" .../>
+```
+
+### Rule G-LABEL-3: Alternative — use smaller icon size for dense horizontal layouts
+
+When 3+ icons must fit in a narrow container (≤300px wide) with long labels:
+
+```
+Option A: Reduce icon size from 78x78 → 50x50 or 60x60 + reduce fontSize to 10
+Option B: Arrange vertically instead of horizontally (eliminates label overlap)
+Option C: Use abbreviated labels ("VPC Flow" instead of "VPC Flow Logs")
+```
+
+### Anti-Patterns
+
+#### ❌ AP-G1: Three 78px icons with 14+ char labels in 200px container
+
+```
+┌──────────── 200px ────────────┐
+│ [78] [78] [78]                │  ← icons fit
+│ VPC Flow LogDNS QueryTGW Flow │  ← labels OVERLAP
+└───────────────────────────────┘
+```
+
+**Fix**: Either widen container to 485px+ OR arrange icons vertically OR abbreviate labels.
+
+#### ❌ AP-G2: Horizontal gap = 10-15px between icons with bottom labels
+
+```
+[Icon1][Icon2][Icon3]   ← gap=10px
+ LabelLabelLabel         ← impossible to read
+```
+
+**Fix**: Minimum gap between icons with `verticalLabelPosition=bottom` = **60px** regardless of icon size. For labels >10 chars, increase to 80-120px per decision matrix above.
+
+### Container Width Calculation WITH labels
+
+```
+container_width = left_pad + Σ(icon_widths) + Σ(gaps) + right_pad
+
+WHERE gap = max(60, (max_label_chars - 10) × 7 + 20)
+
+Example: 3 icons (78px each), labels "GuardDuty"(9), "Security Hub"(12), "Kinesis Firehose"(16)
+  max_label = 16 chars → gap = max(60, (16-10)*7+20) = max(60, 62) = 62px (round to 65)
+  width = 50 + 78 + 65 + 78 + 65 + 78 + 81 = 495px minimum
+```

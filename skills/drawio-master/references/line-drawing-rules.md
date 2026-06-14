@@ -1917,3 +1917,159 @@ Even with the 30px band offset (AP-5), 4 parallel dashed lines + 4 parallel soli
 3. If all targets share SAME dependency (same KMS key) → ALWAYS annotation
 4. If different dependencies per target → consider grouping (2-3 annotations max)
 ```
+
+
+---
+
+## PART 19: EDGE TEXT ANNOTATIONS — Placement & Readability
+
+> **Research basis**: Failed diagram where "S3 Replication" and "delivery.logs.amazonaws.com" text labels overlapped with edges or were placed in ambiguous positions.
+
+### The Problem
+
+Text annotations (edge labels, floating notes) often:
+1. Get placed ON TOP of edges, making both unreadable
+2. Get placed far from the edge they describe, creating ambiguity
+3. Overlap with container borders or icon labels
+4. Use wrong font size or style, blending into diagram noise
+
+### Rule T-1: Text annotation placement relative to edge
+
+Text describing an edge MUST be placed:
+- **Preferred**: Adjacent to the edge midpoint, offset 10-15px above or below the horizontal segment
+- **Alternative**: Near the source exit point, if the edge changes direction immediately
+- **NEVER**: On top of the edge line itself, or inside a container it doesn't belong to
+
+```xml
+<!-- ✅ CORRECT — text placed near edge midpoint, offset above -->
+<mxCell id="t-label" value="S3 Replication" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+  <mxGeometry x="{edge_midpoint_x - text_width/2}" y="{edge_segment_y - 20}" width="..." height="30" as="geometry" />
+</mxCell>
+```
+
+### Rule T-2: Text annotation style for edge descriptions
+
+```
+fontSize=10;fontStyle=2;   ← italic, smaller than icon labels (12)
+strokeColor=none;fillColor=none;  ← transparent, no box
+```
+
+Use `fontStyle=2` (italic) to visually differentiate edge annotations from icon labels (which use `fontStyle=0`).
+
+### Rule T-3: Do NOT clutter — max 3 text annotations per diagram
+
+For diagrams with 5+ edges, limit floating text annotations to the **3 most important** edge descriptions. Over-annotating creates noise worse than no annotations.
+
+**Priority for annotation:**
+1. Security/compliance edge notes (e.g., "DenyUnencryptedTransport", "SSE-KMS")
+2. Service principal / delivery method (e.g., "delivery.logs.amazonaws.com")
+3. Role/mechanism (e.g., "S3 Replication", "Kinesis Firehose role")
+
+**If more than 3 edges need explanation → use Legend box** (see PART 11) instead of inline annotations.
+
+### Rule T-4: Annotation MUST NOT overlap icons or container titles
+
+Before placing text, verify:
+```
+text_x + text_width  < nearest_icon_x  OR  text_x > nearest_icon_x + icon_width
+text_y + text_height < nearest_icon_y  OR  text_y > nearest_icon_y + icon_height + 30 (label)
+```
+
+If annotation would overlap → move it to the other side of the edge, or abbreviate text.
+
+### Anti-Patterns
+
+#### ❌ AP-T1: Text placed directly on edge path
+```
+────── S3 Replication ──────→    ← text ON the line
+```
+**Fix**: Offset 15px above: text at Y = edge_Y - 15
+
+#### ❌ AP-T2: Multiple text annotations stacked vertically in corridor
+```
+    S3 Replication
+    delivery.logs
+    aws:SourceOrgID
+    SSE-KMS required
+         │
+         ↓
+```
+**Fix**: Choose 1-2 most important, put rest in Legend.
+
+#### ❌ AP-T3: Text inside a container it doesn't describe
+```
+┌─ Audit Account ────────────────┐
+│  "delivery.logs.amazonaws.com" │  ← WRONG — this describes the Member→Log Archive edge
+│  [CT Bucket]                   │
+└────────────────────────────────┘
+```
+**Fix**: Place annotation in corridor (between containers), not inside unrelated container.
+
+---
+
+## PART 20: EDGE EXIT STRATEGY — When Source is Below Target
+
+> **Research basis**: Failed diagram where InfoSec Account icons (Y=520+) connected to Log Archive buckets (Y=50-700) — edges had to route UP AND RIGHT causing unnecessary vertical segments.
+
+### The Problem
+
+When source icon is LOWER on canvas than its target (source Y > target Y), orthogonalEdgeStyle creates edges that:
+1. Exit right from source
+2. Go right to corridor
+3. Turn UP (vertical segment in corridor)
+4. Turn right again to reach target
+
+This creates an **inverted-L** shape that looks unnatural compared to a simple left→right flow. When multiple edges do this with different target Y positions, the corridor fills with parallel vertical segments going different heights → visual noise.
+
+### Rule E-EXIT-1: Align source accounts horizontally with their primary targets
+
+**Layout planning BEFORE placing containers:**
+
+```
+Target buckets Y positions: bucket-1 at Y=50, bucket-2 at Y=260, bucket-3 at Y=480, bucket-4 at Y=690
+
+Source containers SHOULD align Y-center with their primary target:
+  - Member Accounts → bucket-network (Y=50)      → place Member at Y≈50
+  - InfoSec Account → bucket-security (Y=260)    → place InfoSec at Y≈260
+  - Audit Account → bucket-cloudtrail (Y=480)    → place Audit at Y≈480
+```
+
+### Rule E-EXIT-2: When Y-alignment impossible, use exitY=0 (top) for upward flows
+
+If source must be below target:
+```xml
+<!-- Source below target → exit from TOP of icon, not RIGHT -->
+exitX=0.5;exitY=0;exitDx=0;exitDy=0;    ← exit UP from source
+entryX=0;entryY=0.5;entryDx=0;entryDy=0; ← enter LEFT of target
+```
+
+This creates a cleaner **∟ shape** (up then right) instead of **right→up→right** (3 segments).
+
+### Rule E-EXIT-3: For multi-row source layouts, stagger target alignment
+
+When diagram has sources in column A and targets in column B:
+
+```
+PREFERRED layout pattern:
+
+Row 1:  [Source A]  ──────→  [Target 1]     ← same Y, clean horizontal
+Row 2:  [Source B]  ──────→  [Target 2]     ← same Y, clean horizontal  
+Row 3:  [Source C]  ──────→  [Target 3]     ← same Y, clean horizontal
+```
+
+Each source at approximately the same Y as its primary target = **all edges go straight right** with minimal or no vertical routing segments.
+
+### Decision Matrix: Source-Target Y relationship
+
+| Y Difference | Edge Shape | Strategy |
+|---|---|---|
+| source Y ≈ target Y (±50px) | Straight horizontal | exit right → enter left (no waypoints) |
+| source Y < target Y (source above) | Natural L-shape down-right | exit right, auto-route fine |
+| source Y > target Y by 50-200px | Inverted-L (right-up-right) | Use exitY=0 OR re-position source |
+| source Y > target Y by 200px+ | Long vertical + horizontal | **Re-position source** — layout is wrong |
+
+### The Golden Rule
+
+> **If you find yourself needing 3+ waypoints to route a single edge cleanly, your LAYOUT is wrong — not your edge routing.**
+
+Fix the layout (move containers) rather than adding complex waypoints to compensate for poor container placement.

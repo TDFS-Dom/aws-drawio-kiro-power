@@ -10,15 +10,17 @@ Activate this skill when user mentions any of:
 - "OU design", "security diagram", "network diagram", "pipeline diagram"
 - "VPC", "Transit Gateway", "Landing Zone" (in context of drawing)
 
-## 🧠 Brain Rule Search (DO THIS BEFORE generating XML)
+## 🧠 Brain Rule Search (MANDATORY — before ANY XML generation)
 
-**At Step 3 — AFTER reading sheet styles, BEFORE writing XML:**
+**MUST call `brain_query` at Step 3 — NO EXCEPTIONS.**
 
-Call `brain_query` with keywords extracted from the diagram request. This retrieves the EXACT rules needed for THIS diagram.
+This is NOT optional. Every diagram generation MUST query brain for relevant rules BEFORE writing any XML. Without this, edge routing WILL produce errors.
 
 ```
 brain_query(query="{2-3 keywords from diagram context}", project="drawio-master", limit=5)
 ```
+
+**If `brain_query` tool is not available** → STOP and inform user: "Brain MCP server not connected. Edge routing quality may be degraded. Proceed anyway?"
 
 **Keyword selection guide:**
 | Diagram involves... | Query keywords |
@@ -32,9 +34,7 @@ brain_query(query="{2-3 keywords from diagram context}", project="drawio-master"
 | Edge routing general | `algorithm route edge` |
 | Anti-patterns check | `anti-pattern violation` |
 
-**Returned rules are HARD CONSTRAINTS** — apply them during XML generation.
-
-If `brain_query` is not available (tool not found) → skip and proceed with file reading only.
+**Rules returned = HARD CONSTRAINTS.** Violating a returned rule = diagram FAILS validation.
 
 ## Entry Point
 
@@ -51,8 +51,9 @@ This file defines the complete 6-step pipeline:
 ## Critical Rules
 
 - **NEVER** generate draw.io XML without completing Step 2 (Design Spec confirmation)
+- **NEVER** generate draw.io XML without calling `brain_query` first (Step 3)
 - **NEVER** invent styles — only use what's extracted from template sheets
-- **ALWAYS** call `brain_query` before XML generation (Step 3) if the tool is available
+- **ALWAYS** call `brain_query` before XML generation — this is MANDATORY, not optional
 - **ALWAYS** read the specific sheet file from `templates/{id}/sheets/` before generating
 - **ALWAYS** run `validate_drawio.py` after generation
 - Output saves to `drawio/` directory

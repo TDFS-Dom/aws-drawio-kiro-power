@@ -113,3 +113,35 @@ These colors apply ONLY to `aft_pipeline` template diagrams with phase swimlanes
 - ❌ Custom fonts
 - ❌ Emoji in labels
 - ❌ Inventing new colors not listed above
+- ❌ Auto-generated text annotations from spec documents (see AP-TEXT below)
+
+### AP-TEXT — No Auto-Generated Text Annotations from Source Documents
+
+> **Research basis**: Production observation — AI reads spec documents containing numbered flow descriptions (①②③④⑤⑥) and explanatory text, then copies them into the diagram as floating text cells. This clutters the diagram with content that belongs in the document, not in the visual.
+
+**Problem**: When the source document (LLD/HLD chapter) uses numbered annotations like "① VPC Flow Logs deliver to network bucket via delivery.logs.amazonaws.com" to explain the architecture, AI auto-generates these as `text;html=1` cells inside the diagram. The diagram becomes cluttered with paragraph-level descriptions that duplicate the document.
+
+**Rule**: Diagrams contain ONLY:
+1. AWS service icons (with short labels: service name only)
+2. Account/Region/VPC containers (with standard labels)
+3. Edges (with optional SHORT edge labels — max 3-4 words)
+4. Legend (if needed)
+
+**FORBIDDEN in diagram output:**
+- Numbered step descriptions (①②③④⑤⑥ or 1. 2. 3.)
+- Writer/principal annotations ("delivery.logs.amazonaws.com", "aws:SourceOrgID condition")
+- Policy descriptions ("DenyUnencryptedTransport", "Object Lock: Enabled")
+- Replication role names as floating text ("acb-s3-replication-cloudtrail")
+- Any text that explains HOW the architecture works (that belongs in the document)
+
+**ALLOWED as edge labels (short):**
+- "S3 Replication" (on replication edge)
+- "Export" (on GuardDuty → S3 edge)
+- "Firehose delivery" (on Firehose → S3 edge)
+
+**Anti-pattern:**
+❌ Adding text cell: "① delivery.logs.amazonaws.com with aws:SourceOrgID condition"
+❌ Adding text cell: "SSE-KMS / Object Lock: Enabled / Versioning: Enabled"
+❌ Adding text cell: "④ S3 Replication from CT Audit bucket"
+✅ Edge label: "S3 Replication" (short, on the edge itself)
+✅ No text cells — let the diagram be clean; explanations live in the document

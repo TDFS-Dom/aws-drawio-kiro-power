@@ -1,164 +1,104 @@
-# Drawio Master — AI generates professional AWS architecture diagrams from requirements
+# AWS Drawio Power for Kiro
 
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-
-English | [Tiếng Việt](#)
-
-> **This is a tool, not a wishing well.**
->
-> Don't expect it to hand you a finished, perfect diagram in one shot. Its real value
-> is taking most of the tedious draw.io XML work off your plate; the polishing that's
-> left is yours — a natively editable .drawio file exists precisely so you can keep
-> working on it in draw.io Desktop, not a flat image you can't touch.
+> AI generates SA-grade AWS architecture diagrams as native `.drawio` files.
 
 ## What it does
 
-Drop in your architecture requirements and get back a real draw.io file: directly
-editable, with proper AWS icons, account containers, VPC groups, color-coded
-connections, and matching your organisation's existing diagram standards exactly.
+Describe your architecture → get back a real, editable `.drawio` file with proper AWS icons, account containers, color-coded edges, and production-grade styling.
 
-**Drawio Master is different:**
+- **Native draw.io XML** — every element clickable and editable
+- **Template-matched** — styles come from 128+ pages of production reference diagrams
+- **Design Spec first** — AI confirms scope before generating anything
+- **No invention** — only styles from templates, never creative additions
+- **Local execution** — runs in Kiro IDE, nothing uploaded
 
-- **Real draw.io XML** — if a file can't be opened and edited in draw.io, it shouldn't be called a diagram. Every element is directly clickable and editable
-- **Template-matched** — diagrams match your existing production standards (4 reference files, 128+ pages of ground truth)
-- **Design Spec first** — AI confirms scope, services, and layout BEFORE generating anything
-- **No invention** — only styles extracted from your reference templates, never creative additions
-- **Data stays local** — everything runs in your IDE, no uploads to external servers
-
-## Quick Start
-
-### 1. Prerequisites
-
-- [Kiro IDE](https://kiro.dev/) installed
-- This power added to Kiro (via git URL or local folder)
-
-### 2. Set Up
-
-```bash
-git clone https://github.com/TDFS-Dom/aws-drawio-kiro-power.git
-```
-
-Or add directly in Kiro: Powers → Add Custom Power → Git URL.
-
-### 3. Create
-
-Tell Kiro what diagram you need:
+## Install
 
 ```
-You: Vẽ diagram network connectivity từ on-prem qua Transit Gateway tới các VPCs
+Kiro IDE → Powers Panel → Add Custom Power → https://github.com/TDFS-Dom/aws-drawio-kiro-power.git
+```
+
+## Usage
+
+```
+You: Vẽ diagram log aggregation từ Member Accounts qua Security Hub tới Log Archive
 
 AI: 📐 DESIGN SPEC
-    [Diagram Type]    Network Design
-    [Template]        networking-diagrams.drawio (HLD sheet)
-    [Canvas]          850×1100, grid=10
-    [Scope]           On-prem DC → Direct Connect → Transit Gateway → VPCs
-    [Accounts]        Network Account
-    [Services]        Transit Gateway, Direct Connect, VPC, NAT Gateway, IGW
-    [Flow Direction]  Left→Right (On-prem → AWS)
-    [Edge Style]      Orange (#D79B00) = DX connections, Green (#82B366) = Prod
-    [Pages]           1
-    [Output File]     Network_HLD.drawio
+    [Diagram Type]    Security / Log Aggregation
+    [Template]        security_iam
+    [Scope]           Member → Security Account → Log Archive (S3 buckets)
+    [Accounts]        Member, Information Security, Audit, Log Archive
+    [Services]        GuardDuty, Security Hub, Kinesis Firehose, KMS, S3
+    [Density]         Medium (6-15 icons)
+    [Output File]     Log_Aggregation.drawio
 
-    Shall I proceed with this spec?
+    Shall I proceed?
 
 You: Go
 
-AI: ✅ Diagram Complete — drawio/Network_HLD.drawio
+AI: ✅ Diagram Complete — drawio/Log_Aggregation.drawio
 ```
 
-**Output:** `.drawio` file saved to `drawio/`. Open with draw.io Desktop (recommended).
-
-### 4. Opening Generated Files
-
-- [draw.io Desktop](https://www.diagrams.net/) (recommended)
-- [draw.io Web](https://app.diagrams.net/)
-- VS Code with [Draw.io Integration](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio) extension
+Open output with [draw.io Desktop](https://www.diagrams.net/), [draw.io Web](https://app.diagrams.net/), or VS Code [Draw.io Integration](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio).
 
 ## Pipeline
 
-The AI follows a strict serial pipeline — no shortcuts, no speculative execution:
-
 ```
-Step 1: Request Analysis          — Parse intent, identify template
-Step 2: Design Spec Confirmation  — ⛔ BLOCKING — user must confirm
-Step 3: Reference Loading         — Load template styles
-Step 4: XML Generation            — Hand-write draw.io XML
-Step 5: Validation                — 8-point quality check
-Step 6: Output                    — Save .drawio file
+Step 1  Request Analysis        → match template
+Step 2  Design Spec ⛔          → present & wait for user confirm
+Step 3  Load Styles + Brain     → read template sheets + query relevant rules
+Step 4  XML Generation          → write draw.io XML (styles copied, not invented)
+Step 5  Validation              → 16-point quality check
+Step 6  Output                  → save .drawio to drawio/
 ```
 
-Full pipeline definition: `skills/drawio-master/SKILL.md`
+## Templates
 
-## Reference Templates
-
-4 production-grade diagrams serve as the **single source of truth** for all generated diagrams:
-
-| Template | Type | Pages | Use When |
+| ID | Type | Pages | When |
 |---|---|---|---|
-| `ou-design.drawio` | OU Hierarchy | 1 | Organization structure, OU tree |
-| `security-iam-design.drawio` | Security | 10 | Security delegation, IAM, logging |
-| `networking-diagrams.drawio` | Networking | 42 | VPC, TGW, routing, connectivity |
-| `AFT.drawio` | Process/Flow | 42 | Account vending, CI/CD, automation |
+| `ou_hierarchy` | Organization | 1 | OU tree, org structure |
+| `security_iam` | Security | 10 | IAM, delegation, logging, encryption |
+| `networking` | Networking | 42 | VPC, TGW, DX, routing |
+| `aft_pipeline` | CI/CD | 42 | Account Factory, pipelines, automation |
 
-## Repository Structure
+## Brain (Optional)
+
+AI-powered rule retrieval via FTS5 search. When connected, AI finds the exact rules needed for each diagram instead of loading 1500+ lines of reference docs.
+
+**Not required** — power works without it. Brain just makes edge routing smarter.
+
+Setup: see `brain-config/README.md`
+
+## Structure
 
 ```
 aws-drawio-kiro-power/
+├── POWER.md                         # Kiro Power entry
+├── steering/drawio-master.md        # Activation trigger
 ├── skills/drawio-master/
-│   ├── SKILL.md                     # Core pipeline definition
-│   ├── references/                  # Technical docs (AI reads on-demand)
-│   │   ├── shared-standards.md         # Extracted styles from templates
-│   │   ├── aws-icons.md             # AWS icon catalog
-│   │   ├── validation-rules.md      # Post-draw validation
-│   │   ├── branding.md              # Company colours
-│   │   ├── architecture-patterns.md # Layout patterns
-│   │   └── style-guide.md           # Extended styling
-│   ├── templates/                   # Reference .drawio files (ground truth)
-│   │   ├── templates_index.md
-│   │   └── *.drawio (4 files)
-│   └── workflows/                   # Standalone sub-workflows
-│       └── design-spec.md
-├── drawio/                        # Generated diagram outputs
-├── examples/                        # Example outputs
-├── docs/                            # Documentation
-├── POWER.md                         # Kiro Power entry point
-├── README.md                        # This file
-├── icon.svg
-└── .gitignore
+│   ├── SKILL.md                     # Pipeline (6 steps)
+│   ├── references/                  # Rules & patterns (11 files)
+│   ├── templates/                   # Style source (4 templates, 95 sheets)
+│   ├── scripts/                     # Validation & extraction
+│   └── workflows/                   # Sub-workflows
+├── brain-config/                    # Brain setup (optional)
+│   ├── mcp.json                     # MCP config template
+│   ├── seed-rules.py               # Ingest rules into brain
+│   └── seeds/drawio-rules.db       # Pre-seeded DB (228 rules)
+├── drawio/                          # Generated outputs (gitignored)
+└── icon.svg
 ```
 
-## Documentation
+## Key Files
 
-| | Doc | Description |
-|---|---|---|
-| 📘 | `skills/drawio-master/SKILL.md` | Core workflow and rules |
-| 📐 | `skills/drawio-master/templates/templates_index.md` | Template selection guide |
-| 🎨 | `skills/drawio-master/references/shared-standards.md` | Visual standards reference |
-| 🔍 | `skills/drawio-master/references/aws-icons.md` | AWS icon catalog |
-| ✅ | `skills/drawio-master/references/validation-rules.md` | Validation checklist |
-
-## The person using it matters more
-
-The reference diagrams were made by experienced Solutions Architects. With the same
-draw.io, an SA can produce something stunning while most people only ever touch basic
-shapes. The difference isn't the tool, it's the person using it. If you can't get
-there yet, it's most likely that you haven't learned the workflow — start with the
-pipeline in SKILL.md and the template files.
-
-## Contributing
-
-Issues and PRs welcome. When contributing:
-- Follow existing template styles — no creative additions
-- Test with draw.io Desktop before submitting
-- Keep reference files as ground truth
+| File | Purpose |
+|---|---|
+| `skills/drawio-master/SKILL.md` | Core pipeline + mandatory rules |
+| `skills/drawio-master/references/line-drawing-rules.md` | Edge routing (17 types + anti-patterns + pathfinding) |
+| `skills/drawio-master/references/aws-icons.md` | Icon catalog + known issues |
+| `skills/drawio-master/references/validation-rules.md` | Post-generation checks |
+| `skills/drawio-master/templates/{id}/sheets/*.md` | Copy-paste style source |
 
 ## License
 
-[MIT](LICENSE) — Use freely, attribution appreciated.
-
-## Acknowledgements
-
-- [draw.io / diagrams.net](https://www.diagrams.net/)
-- [AWS Architecture Icons](https://aws.amazon.com/architecture/icons/)
-- [awsfundamentals.com/aws-icons](https://awsfundamentals.com/aws-icons) — External SVG icon source
-- Inspired by [hugohe3/ppt-master](https://github.com/hugohe3/ppt-master) pipeline architecture
+MIT

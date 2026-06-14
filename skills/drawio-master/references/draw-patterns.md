@@ -285,3 +285,50 @@ text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;s
 ```
 text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;
 ```
+
+#### T6: Policy/Constraint annotation (10px, colored)
+
+Dùng cho bucket policy annotations, security constraints, compliance notes gắn vào containers hoặc resources.
+
+```
+text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#CD2264;fontStyle=2;
+```
+
+**Examples:**
+- "DenyUnencryptedTransport (TLS Required)" — gắn dưới S3 bucket hoặc bucket group
+- "Object Lock: Enabled" — gắn cạnh bucket icon
+- "PCI-DSS 10.7 Compliant" — gắn vào account/region container
+
+**Placement rules:**
+- Đặt DƯỚI hoặc BÊN PHẢI target element, không đè lên icon
+- `fontColor=#CD2264` (Security/org pink) cho security constraints
+- `fontColor=#7AA116` (Storage green) cho storage properties
+- `fontStyle=2` (italic) để phân biệt với regular labels
+
+#### T7: Service count badge (icon + count label)
+
+Dùng khi diagram cần represent nhiều resources cùng loại mà không vẽ từng cái (ví dụ: "13 EventBridge Rules", "7 SNS Topics").
+
+```xml
+<!-- Service icon (standard 78x78) -->
+<mxCell id="eb-rules-icon" value="EventBridge" style="sketch=0;...;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.eventbridge;fillColor=#BC1356;strokeColor=#ffffff;" vertex="1" parent="{container}">
+  <mxGeometry x="{X}" y="{Y}" width="78" height="78" as="geometry" />
+</mxCell>
+
+<!-- Count badge (top-right of icon) -->
+<mxCell id="eb-rules-badge" value="×13" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=#BC1356;fontSize=10;fontStyle=1;fontColor=#FFFFFF;rounded=1;arcSize=50;" vertex="1" parent="{container}">
+  <mxGeometry x="{X+58}" y="{Y-5}" width="30" height="20" as="geometry" />
+</mxCell>
+```
+
+**When to use:**
+- 4+ identical services (e.g., "13 rules", "7 topics", "9 keys")
+- HLD/overview level where listing each one individually is too detailed
+- Combined with fan-out edges labeled with category
+
+**Badge style:**
+- `fillColor` matches service category color
+- `fontColor=#FFFFFF` (white on colored badge)
+- `rounded=1;arcSize=50` (pill shape)
+- Position: top-right corner of icon (+58x, -5y offset from icon origin)
+- `fontSize=10;fontStyle=1` (small, bold)

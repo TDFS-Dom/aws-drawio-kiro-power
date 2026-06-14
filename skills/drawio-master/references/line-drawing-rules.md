@@ -1382,6 +1382,138 @@ Trong production, pattern thực tế là:
 
 ---
 
+### 16.5b — E18: S3 Replication Edge (cross-account bucket copy)
+
+```
+edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#BC1356;
+```
+
+Dùng khi: S3 Cross-Account Replication — bucket trong Account A replicate objects tới bucket trong Account B thông qua IAM replication role.
+
+**Use cases trong Landing Zone:**
+- CT-managed CloudTrail bucket (Audit Account) → `acb-logs-cloudtrail-{id}` (Log Archive Account)
+- CT-managed Config bucket (Audit Account) → `acb-logs-config-{id}` (Log Archive Account)
+
+**Đặc điểm:**
+- `strokeColor=#BC1356` — Management category (vì S3 replication là management/governance function)
+- `strokeWidth=2` — solid, active data transfer (NOT dependency — actual objects are copied)
+- `endArrow=classic;endFill=1` — direction: source bucket → destination bucket
+- Label (optional): replication role name, ví dụ `"acb-s3-replication-cloudtrail"`
+
+**Khác với:**
+- E12b (Security intra-account): E18 là cross-account, Management color
+- E4 (Dependency): E18 là ACTIVE data copy (solid, strokeWidth=2), không phải reference
+- E17 (KMS scope): E17 là dashed dependency, E18 là solid data flow
+
+**XML example:**
+```xml
+<mxCell id="e-replication-ct" value="acb-s3-replication-cloudtrail" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#BC1356;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ct-cloudtrail-bucket" target="acb-logs-cloudtrail">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+```
+
+**Label positioning:**
+- Short label (role name) inline trên edge: `value="acb-s3-replication-cloudtrail"`
+- Long label: dùng `fontSize=10` để giảm size
+- Nếu label chồng edge khác: `labelBackgroundColor=#000000` (match dark background) hoặc offset bằng floating text cell
+
+**Khi nào dùng E18 vs regular data flow:**
+| Scenario | Edge |
+|---|---|
+| S3 replication (cross-account bucket copy) | **E18** (Management #BC1356, solid, labeled with role) |
+| Service delivery (`delivery.logs.amazonaws.com` → S3) | Data Flow (Networking #8C4FFF hoặc source category) |
+| Firehose → S3 (streaming delivery) | E12b (Security #C7131F, active pipeline) |
+| Log download/query (Athena → S3) | Data Flow (standard, source category) |
+
+---
+
+### 16.5c — KMS Multi-Key Dependency Fan (Key Hierarchy diagrams)
+
+**Pattern**: Khi 1 account chứa NHIỀU KMS keys, mỗi key encrypt resources ở KHÁC accounts. Cần vẽ fan-out dependency từ key group → multiple targets.
+
+**Dùng khi**: KMS Key Hierarchy diagram (ví dụ: 9 CMKs trong InfoSec Account, mỗi key → 1 account/service khác).
+
+**Layout:**
+
+```
+┌── Information Security Account ─────────────────────────┐
+│                                                         │
+│  [KMS: elz-logarchive-s3]     ─────→  Log Archive Account
+│  [KMS: elz-logarchive-athena] ─────→  Log Archive Account (Athena)
+│  [KMS: elz-audit-s3]         ─────→  Audit Account
+│  [KMS: elz-aft-s3]           ─────→  AFT Account
+│  [KMS: elz-aft-ebs]          ─────→  AFT Account (EBS)
+│  [KMS: elz-monitoring-cwlog] ─────→  Monitoring Account
+│  [KMS: elz-network-cwlog]    ─────→  Network Account
+│  [KMS: elz-workload-cwlog]   ─────→  Workload Accounts
+│  [KMS: elz-infosec-sns]      ─────→  InfoSec Account (SNS)
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Hai approaches:**
+
+#### Approach A: Individual dependency edges (detailed diagram, ≤6 keys)
+
+Mỗi KMS key icon = 1 mxCell, mỗi edge = 1 dependency line (E13 style):
+
+```xml
+<!-- KMS key icon (50x50 — smaller for multi-key layout) -->
+<mxCell id="kms-logarchive-s3" value="alias/elz-logarchive-s3" style="sketch=0;points=[[...]];outlineConnect=0;fontColor=#232F3E;fillColor=#DD344C;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.key_management_service;" vertex="1" parent="infosec-container">
+  <mxGeometry x="50" y="41" width="50" height="50" as="geometry" />
+</mxCell>
+
+<!-- Dependency edge: KMS → target account container -->
+<mxCell id="e-kms-logarchive" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#C7131F;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="kms-logarchive-s3" target="logarchive-account">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+```
+
+**Rules cho Approach A:**
+- KMS icons: 50x50 (smaller than standard 78x78 — fit more in container)
+- Vertical stacking: gap 80px between key centers (50 icon + 30 label)
+- Edges: E13 style (dashed, `#C7131F`, `strokeWidth=1`)
+- Fan-out: stagger `exitY` per key OR use explicit waypoints
+- Labels: `fontSize=10` cho alias names (shorter = better)
+
+#### Approach B: Grouped KMS container + summary edges (HLD, 7+ keys)
+
+Khi có 7+ keys, vẽ từng cái quá chật. Thay vào đó group keys theo purpose:
+
+```xml
+<!-- KMS key group (visual grouping, not AWS group) -->
+<mxCell id="kms-group" value="9 KMS CMKs&#xa;(Purpose-specific)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#DD344C;strokeWidth=1;dashed=1;verticalAlign=top;align=center;fontSize=11;fontColor=#DD344C;container=1;collapsible=0;" vertex="1" parent="infosec-container">
+  <mxGeometry x="50" y="41" width="200" height="120" as="geometry" />
+</mxCell>
+
+<!-- Single KMS icon inside group (representative) -->
+<mxCell id="kms-representative" value="KMS CMKs" style="sketch=0;...;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.key_management_service;fillColor=#DD344C;strokeColor=#ffffff;" vertex="1" parent="kms-group">
+  <mxGeometry x="61" y="30" width="78" height="78" as="geometry" />
+</mxCell>
+
+<!-- Summary edges by account group (1 edge per target account, labeled) -->
+<mxCell id="e-kms-logarchive" value="elz-logarchive-s3&#xa;elz-logarchive-athena" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#C7131F;dashed=1;fontSize=9;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="kms-group" target="logarchive-account">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+```
+
+**Rules cho Approach B:**
+- 1 KMS icon (representative) trong dashed group container
+- Group label: count + purpose ("9 KMS CMKs")
+- 1 edge per TARGET ACCOUNT (not per key) — label lists key aliases
+- Multiple keys → same account: merge into 1 edge with multi-line label (`&#xa;`)
+- Stagger `exitY` per target: 0.2, 0.4, 0.6, 0.8
+
+**Khi nào A vs B:**
+| Keys | Diagram Level | Approach |
+|---|---|---|
+| ≤6 keys | Detailed | **A** (individual icons + edges) |
+| 7+ keys | HLD/overview | **B** (grouped + summary edges) |
+| Any | Key policy focus | **A** (need to show each key's grants) |
+| Any | Architecture overview | **B** (show key→account relationships) |
+
+---
+
 ### 16.6 — Rule #2 Clarification: Cross-Boundary
 
 **Original Rule #2**: "LINES MUST NOT CROSS FOREIGN BOUNDARIES — A line MUST NEVER pass through a container it doesn't belong to. Route around."

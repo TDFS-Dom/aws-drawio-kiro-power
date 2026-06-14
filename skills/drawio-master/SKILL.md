@@ -660,7 +660,7 @@ Shall I proceed?
 
 🚧 GATE: User confirmed Design Spec.
 
-**Read these files IN ORDER:**
+**3a. Read sheet files IN ORDER:**
 
 ```
 1. Read: templates/{template_id}/sheets_index.md
@@ -671,12 +671,33 @@ Shall I proceed?
 6. Read: references/shared-standards.md                   ← Anti-patterns
 ```
 
-**After reading, output:**
+**3b. Brain Query — retrieve relevant rules (OPTIONAL, if brain MCP available):**
+
+IF brain MCP server is connected (tool `brain_query` available):
+
+```
+Construct query from Design Spec keywords:
+  - Cross-account edges? → "cross-account edge routing intermediate container bypass"
+  - Fan-in/out? → "fan-in fan-out parallel merge bundle stagger"
+  - KMS/encryption? → "KMS encryption scope dashed dependency boundary"
+  - Log aggregation? → "log aggregation trunk vertical branch S3 bucket"
+  - Security intra-account? → "intra-account security GuardDuty Security Hub Firehose"
+
+Call: brain_query(query="{keywords}", project="drawio-master", limit=5)
+
+Apply returned rules as HARD CONSTRAINTS during XML generation (Step 4).
+These rules take PRIORITY over general reading — they are the MOST RELEVANT rules for this specific diagram.
+```
+
+IF brain NOT available → proceed with file reading only (standard mode).
+
+**After loading, output:**
 ```
 📄 Loaded: sheets/{NN}_{slug}.md
 🎨 Containers: {N} styles available
 🔷 Icons: {N} styles available
 ➡️ Edges: using 3 standard patterns (Data Flow / Dependency / Hierarchy)
+🧠 Brain: {N} relevant rules retrieved (or "not connected")
 ```
 
 **CRITICAL**: From this point forward, ONLY container/icon styles from the loaded sheet file may appear in your XML. Edge styles use the 3 fixed patterns from "WHAT EDGES LOOK LIKE". If you need a container/icon style not in the file → STOP and tell the user.
@@ -775,6 +796,42 @@ python3 skills/drawio-master/scripts/validate_drawio.py drawio/<file.drawio>
 | 16 | **Fan-in edges (N→1): stagger `entryY` (0.2/0.5/0.8) per edge** | All fan-in edges using same `entryX=0;entryY=0.5` → overlap |
 
 Fix errors → re-validate → Step 6.
+
+---
+
+### Step 5b: Brain Learn (OPTIONAL, if brain MCP available)
+
+IF brain MCP server is connected AND validation passed:
+
+```
+brain_store({
+  content: "Generated {diagram_type}: {N} accounts ({account_names}), {M} edges. 
+            Patterns used: {list edge types E12b, Case 12, etc.}
+            Validation: passed on attempt {1 or 2+}.
+            Key decisions: {routing choices, lane assignments}",
+  summary: "{diagram_type}: {source}→{target}, used {patterns}",
+  essence: "{diagram_type} {account_names} {service_names} {pattern_ids}",
+  importance: 4,
+  tags: [{extracted from diagram context}],
+  project: "drawio-master",
+  memory_type: "learning"
+})
+```
+
+IF validation FAILED then was fixed:
+```
+brain_store({
+  content: "GOTCHA: {what failed validation}. FIX: {what was changed to pass}.",
+  summary: "Avoid: {mistake}. Instead: {correct approach}",
+  essence: "{error keywords} fix correction",
+  importance: 5,
+  tags: ["gotcha", ...relevant_tags],
+  project: "drawio-master",
+  memory_type: "learning"
+})
+```
+
+IF brain NOT available → skip (no-op).
 
 ---
 

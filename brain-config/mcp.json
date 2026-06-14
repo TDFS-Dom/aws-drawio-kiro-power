@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "brain": {
+      "command": "~/.brain/brain",
+      "args": [],
+      "env": {
+        "LAMBDA_BRAIN_DB_PATH": "~/.brain/brain.db",
+        "LAMBDA_BRAIN_DECAY_LAMBDA": "0.005"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "brain_query",
+        "brain_store",
+        "brain_recall",
+        "brain_context",
+        "brain_status"
+      ]
+    }
+  }
+}

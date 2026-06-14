@@ -790,13 +790,243 @@ EDGE PLAN:
 - [ ] Dashed edges ở separate Y/X band từ solid edges
 - [ ] Mọi cross-account edge có explicit exit/entry
 - [ ] Max 2 turns per edge
-| Edge không có `source` và `target` (ngoài Bus/Legend exception) | Luôn set source và target |
-| `parent="1"` cho edge trong cùng container | `parent="container-id"` khi source và target cùng cha |
-| Thiếu `relative="1"` trong mxGeometry | `<mxGeometry relative="1" as="geometry" />` |
 
 ---
 
-## PART 14: CHECKLIST — Verify mỗi edge trước khi submit
+## PART 13c: PATHFINDING ALGORITHM (Tính waypoints chính xác)
+
+> Thay vì đoán waypoints → dùng thuật toán dưới đây để TÍNH TOÁN path cho mỗi edge. Chạy TRƯỚC KHI viết XML.
+
+### Input (từ Edge Plan + Container Layout)
+
+```
+Cho mỗi edge cần vẽ:
+  - source_cell: {id, x, y, width, height, parent_container}
+  - target_cell: {id, x, y, width, height, parent_container}
+  - edge_type: solid | dashed
+  - lane_index: 0, 1, 2... (assigned trong Edge Plan)
+
+Layout data (đã biết từ Step 4):
+  - containers[]: {id, x, y, width, height}  ← tất cả account/region containers
+  - LANE_OFFSET = 20  ← px offset giữa parallel lanes
+  - CLEARANCE = 40    ← px minimum gap giữa edge và container border
+  - BAND_GAP = 30     ← px offset giữa dashed band và solid band
+```
+
+### Algorithm: Route Edge
+
+```
+FUNCTION routeEdge(source, target, containers, edge_type, lane_index):
+
+  ──── STEP 1: Xác định Exit/Entry Points ────
+
+  direction = detectDirection(source, target)
+  
+  IF direction == LEFT_TO_RIGHT:
+    exit  = {x: source.x + source.width, y: source.y + source.height/2}   # exitX=1, exitY=0.5
+    entry = {x: target.x,               y: target.y + target.height/2}   # entryX=0, entryY=0.5
+  
+  ELIF direction == TOP_TO_BOTTOM:
+    exit  = {x: source.x + source.width/2, y: source.y + source.height}   # exitX=0.5, exitY=1
+    entry = {x: target.x + target.width/2, y: target.y}                   # entryX=0.5, entryY=0
+  
+  ELIF direction == RIGHT_TO_LEFT:
+    exit  = {x: source.x,                  y: source.y + source.height/2}  # exitX=0, exitY=0.5
+    entry = {x: target.x + target.width,   y: target.y + target.height/2}  # entryX=1, entryY=0.5
+
+  ──── STEP 2: Tìm intermediate containers (obstacles) ────
+
+  obstacles = []
+  FOR each container in containers:
+    IF container == source.parent_container: SKIP
+    IF container == target.parent_container: SKIP
+    IF edgePathIntersects(exit, entry, container):
+      obstacles.append(container)
+  
+  ──── STEP 3: Tính route path ────
+
+  IF obstacles == EMPTY:
+    # Direct route — no waypoints needed (hoặc 1 waypoint cho clean L-shape)
+    IF exit.y == entry.y:
+      waypoints = []   # straight horizontal
+    ELIF exit.x == entry.x:
+      waypoints = []   # straight vertical
+    ELSE:
+      # L-shape: 1 turn
+      mid_x = exit.x + (entry.x - exit.x) / 2
+      waypoints = [{x: mid_x, y: exit.y}, {x: mid_x, y: entry.y}]
+  
+  ELSE:
+    # Has obstacles → route OUTSIDE
+    route_side = chooseSide(source, target, obstacles)
+    
+    IF route_side == RIGHT:
+      bypass_x = max(c.x + c.width for c in obstacles) + CLEARANCE + (lane_index * LANE_OFFSET)
+    ELIF route_side == LEFT:
+      bypass_x = min(c.x for c in obstacles) - CLEARANCE - (lane_index * LANE_OFFSET)
+    ELIF route_side == TOP:
+      bypass_y = min(c.y for c in obstacles) - CLEARANCE - (lane_index * LANE_OFFSET)
+    ELIF route_side == BOTTOM:
+      bypass_y = max(c.y + c.height for c in obstacles) + CLEARANCE + (lane_index * LANE_OFFSET)
+    
+    # Generate waypoints (max 2 turns):
+    IF route_side in [RIGHT, LEFT]:
+      waypoints = [
+        {x: bypass_x, y: exit.y},    # turn 1: go to bypass lane
+        {x: bypass_x, y: entry.y}    # turn 2: go to target Y level
+      ]
+    ELSE:
+      waypoints = [
+        {x: exit.x,   y: bypass_y},  # turn 1: go to bypass lane
+        {x: entry.x,  y: bypass_y}   # turn 2: go to target X level
+      ]
+
+  ──── STEP 4: Apply band offset (dashed vs solid separation) ────
+
+  IF edge_type == DASHED:
+    FOR each wp in waypoints:
+      wp.y -= BAND_GAP   # dashed edges route ABOVE solid edges
+  
+  ──── STEP 5: Apply fan-in/fan-out stagger ────
+
+  # Nếu nhiều edges cùng target → stagger entry Y
+  same_target_edges = edges.filter(e => e.target == target AND e != this_edge)
+  IF same_target_edges.count > 0:
+    total = same_target_edges.count + 1
+    my_index = lane_index % total
+    entry.y = target.y + (target.height * (my_index + 1) / (total + 1))
+    # Update last waypoint Y to match new entry.y
+    IF waypoints.length > 0:
+      waypoints[-1].y = entry.y
+
+  RETURN {exit, entry, waypoints}
+```
+
+### Helper Functions
+
+```
+FUNCTION detectDirection(source, target):
+  dx = target.x - source.x
+  dy = target.y - source.y
+  IF abs(dx) > abs(dy):
+    RETURN LEFT_TO_RIGHT if dx > 0 else RIGHT_TO_LEFT
+  ELSE:
+    RETURN TOP_TO_BOTTOM if dy > 0 else BOTTOM_TO_TOP
+
+FUNCTION chooseSide(source, target, obstacles):
+  # Prefer routing on the SAME SIDE as target relative to obstacles
+  # Rule: don't cross MORE containers
+  
+  max_obstacle_right = max(c.x + c.width for c in obstacles)
+  min_obstacle_left  = min(c.x for c in obstacles)
+  max_obstacle_bottom = max(c.y + c.height for c in obstacles)
+  min_obstacle_top   = min(c.y for c in obstacles)
+  
+  # If target is to the RIGHT of obstacles → route RIGHT
+  IF target.x > max_obstacle_right: RETURN RIGHT
+  # If target is to the LEFT of obstacles → route LEFT
+  IF target.x + target.width < min_obstacle_left: RETURN LEFT
+  # If target is BELOW obstacles → route BOTTOM (but only if no more obstacles below)
+  IF target.y > max_obstacle_bottom: RETURN BOTTOM
+  # Default: route to side with more space
+  space_right = canvas_width - max_obstacle_right
+  space_left  = min_obstacle_left
+  RETURN RIGHT if space_right >= space_left else LEFT
+
+FUNCTION edgePathIntersects(exit_point, entry_point, container):
+  # Check if straight line between exit and entry would cross container bbox
+  # Use axis-aligned bounding box intersection
+  line_min_x = min(exit_point.x, entry_point.x)
+  line_max_x = max(exit_point.x, entry_point.x)
+  line_min_y = min(exit_point.y, entry_point.y)
+  line_max_y = max(exit_point.y, entry_point.y)
+  
+  # Orthogonal edge actually travels L-shaped, so check both segments:
+  # Segment 1: horizontal from exit to mid_x
+  # Segment 2: vertical from mid_x to entry
+  # Simplified: if container bbox overlaps the rectangular area between exit and entry
+  RETURN NOT (container.x > line_max_x OR 
+              container.x + container.width < line_min_x OR
+              container.y > line_max_y OR 
+              container.y + container.height < line_min_y)
+```
+
+### Output Format (chuyển thành XML)
+
+```
+Kết quả routeEdge():
+  exit  = {x: 450, y: 200}    → exitX, exitY (convert to 0-1 relative)
+  entry = {x: 600, y: 350}    → entryX, entryY (convert to 0-1 relative)
+  waypoints = [{x: 520, y: 200}, {x: 520, y: 350}]
+
+Convert to exit/entry relative values:
+  exitX  = (exit.x - source.x) / source.width     # 0-1
+  exitY  = (exit.y - source.y) / source.height     # 0-1
+  entryX = (entry.x - target.x) / target.width     # 0-1
+  entryY = (entry.y - target.y) / target.height     # 0-1
+
+XML output:
+```
+
+```xml
+<mxCell id="e-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#8C4FFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="src-id" target="tgt-id">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="520" y="200" />
+      <mxPoint x="520" y="350" />
+    </Array>
+  </mxGeometry>
+</mxCell>
+```
+
+### Worked Example: Log Aggregation Diagram
+
+```
+Layout:
+  Member Account:    {x: 30,  y: 20,  w: 400, h: 250}
+  Security Account:  {x: 30,  y: 310, w: 400, h: 300}
+  Audit Account:     {x: 30,  y: 650, w: 400, h: 250}
+  Log Archive:       {x: 550, y: 20,  w: 400, h: 880}
+
+Edge: Firehose (Security) → acb-logs-cloudtrail (Log Archive)
+  source: {x: 200, y: 520, w: 78, h: 78, parent: Security}
+  target: {x: 700, y: 560, w: 78, h: 78, parent: Log Archive}
+
+Step 1 (direction = LEFT_TO_RIGHT):
+  exit  = {x: 278, y: 559}   → exitX=1, exitY=0.5
+  entry = {x: 700, y: 599}   → entryX=0, entryY=0.5
+
+Step 2 (obstacles):
+  Path from (278,559) → (700,599):
+  - Member Account: y range 20-270 → does NOT intersect (559 > 270) ✅
+  - Audit Account: y range 650-900 → does NOT intersect (559 < 650) ✅
+  - No obstacles!
+
+Step 3 (no obstacles → L-shape):
+  mid_x = 278 + (700-278)/2 = 489
+  waypoints = [{x: 489, y: 559}, {x: 489, y: 599}]
+
+Step 4 (solid edge → no band offset)
+
+Step 5 (check fan-in to same target):
+  Other edges to acb-logs-cloudtrail: Audit Trail edge (lane 1)
+  total = 2, my_index = 0
+  entry.y = 560 + (78 * 1/3) = 586
+  waypoints[-1].y = 586
+
+Final: exit=(278,559), entry=(700,586), waypoints=[(489,559),(489,586)]
+```
+
+### Khi NÀO apply algorithm vs auto-route
+
+| Scenario | Algorithm? |
+|---|---|
+| Same-container edge (source & target cùng parent) | ❌ Auto-route |
+| Adjacent containers (no intermediate) | ⚠️ Set exit/entry, waypoints optional |
+| Cross-container with intermediate obstacles | ✅ MANDATORY algorithm |
+| Fan-in/fan-out (1→N or N→1) | ✅ MANDATORY (stagger calculation) |
+| Parallel edges same direction | ✅ MANDATORY (lane assignment) |
+| Single simple L→R edge no obstacles | ❌ Exit/entry enough |
 
 ```
 MANDATORY (mọi edge):

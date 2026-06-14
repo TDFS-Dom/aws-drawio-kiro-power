@@ -92,7 +92,7 @@ Every AWS service icon MUST use this pattern:
 
 ## WHAT EDGES LOOK LIKE (MANDATORY)
 
-> **Full reference**: `references/line-drawing-rules.md` — 14 parts, 949-edge research basis, 15 edge types, 3 special types, routing cases, merge techniques, checklist. Read it before drawing any edges.
+> **Full reference**: `references/line-drawing-rules.md` — 17 edge types (E1-E17) + 3 special types (S1-S3), routing cases, merge techniques, 16.x patterns, checklist. Read it before drawing any edges.
 
 ### 🚨 ABSOLUTE RULE: `edgeStyle=orthogonalEdgeStyle` on EVERY edge
 
@@ -100,10 +100,10 @@ Every AWS service icon MUST use this pattern:
 
 ```
 ❌ WRONG (missing edgeStyle → diagonal line):
-style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#DD344C;dashed=1;"
+style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#C7131F;dashed=1;"
 
 ✅ CORRECT (orthogonal routing):
-style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#DD344C;dashed=1;"
+style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#C7131F;dashed=1;"
 ```
 
 **ALWAYS**: `edgeStyle=orthogonalEdgeStyle;rounded=0`. **NEVER**: omit `edgeStyle`, never `rounded=1`.
@@ -131,7 +131,7 @@ For active data movement between services (logs, events, replication).
 | Compute (Lambda, Step Functions) | `#ED7100` | Lambda → SQS |
 | DevTools (CodePipeline, CodeBuild) | `#C925D1` | CodePipeline → CodeBuild |
 
-> **Full color list**: See `references/draw-patterns.md` Edge table (E1-E15) for all allowed colors including `#FF9933` (AFT process), `#FF0000` (critical/alert), `#33FF33` (integration), `#D79B00` (DX/on-prem), `#6c8ebf` (NonProd shared), `#82B366` (Prod shared).
+> **Full color list**: See `references/draw-patterns.md` Edge table (E1-E15) + `references/line-drawing-rules.md` (E16-E17) for all allowed colors including `#FF9933` (AFT process), `#FF0000` (critical/alert), `#33FF33` (integration), `#D79B00` (DX/on-prem), `#6c8ebf` (NonProd shared), `#82B366` (Prod shared).
 
 #### Type 2: Dependency/Encryption — Dashed, thinner, strokeWidth=1
 
@@ -144,7 +144,7 @@ For non-data relationships: encryption keys, IAM policies, configuration referen
 ```
 
 **Color matches the source service category** (same table as Type 1).
-Example: KMS (Security) → S3 Bucket = `strokeColor=#DD344C;dashed=1`
+Example: KMS (Security) → S3 Bucket = `strokeColor=#C7131F;dashed=1`
 
 #### Type 3: Hierarchy — Default weight, no color
 
@@ -213,7 +213,7 @@ When one service connects to multiple targets stacked vertically:
 
 ```xml
 <!-- First edge exits right, waypoints route to first target -->
-<mxCell id="e-kms-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#DD344C;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-kms" target="target-1">
+<mxCell id="e-kms-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#C7131F;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-kms" target="target-1">
   <mxGeometry relative="1" as="geometry">
     <Array as="points">
       <mxPoint x="560" y="559" />
@@ -458,15 +458,14 @@ text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;s
 
 ### Edge Checklist (verify EVERY edge)
 
-- [ ] Has `edgeStyle=orthogonalEdgeStyle` (NO EXCEPTIONS)
-- [ ] Has `rounded=0`
-- [ ] Has valid `source` and `target` IDs
-- [ ] `strokeColor` matches source service category
-- [ ] Data flow = `strokeWidth=2;` solid | Dependency = `strokeWidth=1;dashed=1;`
-- [ ] Cross-account edges (2+ hops) have waypoints via `<Array as="points">`
-- [ ] Fan-out edges (1→N) have staggered waypoints (20px offset per edge)
-- [ ] No edge visually overlaps another edge on the same path
-- [ ] No `curved`, `rounded=1`, or missing `edgeStyle`
+> See **Per-element checklist** in Step 4 for the full edge verification list (items #1-#3, #6-#8, #13-#16).
+
+Quick summary:
+- `edgeStyle=orthogonalEdgeStyle` + `rounded=0` on ALL edges
+- `strokeColor` = source service category color (`#C7131F` Security, `#8C4FFF` Networking, `#BC1356` Management)
+- Data flow = `strokeWidth=2` solid | Dependency = `strokeWidth=1;dashed=1` | KMS = `dashPattern=5 5`
+- Cross-account (2+ hops): explicit waypoints via `<Array as="points">`
+- Fan-in (N→1 same side): stagger `entryY` (0.2/0.5/0.8) — see line-drawing-rules.md §16.9
 
 ---
 
@@ -667,8 +666,9 @@ Shall I proceed?
 1. Read: templates/{template_id}/sheets_index.md
 2. Read: templates/{template_id}/sheets/{NN}_{slug}.md   ← THE STYLES
 3. Read: references/draw-patterns.md                      ← GENERIC PATTERNS (edges, containers, icons, text)
-4. Read: references/line-drawing-rules.md                 ← LINE ROUTING (15 types, merge, waypoints, decision tree)
-5. Read: references/shared-standards.md                   ← Anti-patterns
+4. Read: references/line-drawing-rules.md                 ← LINE ROUTING (E1-E17, merge, waypoints, 16.x patterns)
+5. Read: references/aws-icons.md                          ← ICON resIcon names + KMS known issue + category colors
+6. Read: references/shared-standards.md                   ← Anti-patterns
 ```
 
 **After reading, output:**
@@ -692,7 +692,7 @@ Shall I proceed?
 **Write order (MANDATORY):**
 
 ```xml
-<mxfile host="app.diagrams.net" modified="..." agent="Kiro" version="24.0.0" type="device">
+<mxfile host="app.diagrams.net" modified="..." agent="Claude Code" version="24.0.0" type="device">
   <diagram id="..." name="...">
     <mxGraphModel dx="..." dy="..." grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
@@ -735,6 +735,10 @@ Shall I proceed?
 - [ ] No text overlap (check geometry — vertical gap ≥ 161px between icon centers)
 - [ ] **ALL icons inside parent container bounds** (icon_x+78 ≤ container_width-81, icon_y+108 ≤ container_height-50)
 - [ ] **Container sized correctly** (use formula from GEOMETRY section)
+- [ ] **KMS icon uses `resIcon=mxgraph.aws4.key_management_service`** (NOT `kms`) — see aws-icons.md known issue
+- [ ] **KMS dependency edge: `endArrow=classic;endFill=1` pointing INTO encrypted resource** (not reversed)
+- [ ] **Security diagrams: GuardDuty → Security Hub edge EXISTS** before Security Hub → EventBridge → Firehose
+- [ ] **Fan-in edges (N sources → 1 target from same side): stagger entryY** — e.g., 0.2 / 0.5 / 0.8 per source
 
 ✅ XML written → Step 5.
 
@@ -746,7 +750,7 @@ Shall I proceed?
 
 **Run:**
 ```bash
-python3 ${SKILL_DIR}/scripts/validate_drawio.py <file.drawio>
+python3 skills/drawio-master/scripts/validate_drawio.py drawio/<file.drawio>
 ```
 
 **Also manually verify:**
@@ -765,6 +769,10 @@ python3 ${SKILL_DIR}/scripts/validate_drawio.py <file.drawio>
 | 10 | Edge strokeColor matches source category | Wrong color for flow type |
 | 11 | **Icons inside bounds** | icon bleeds outside container |
 | 12 | **Labels don't overlap icons below** | Vertical spacing too tight |
+| 13 | **KMS: `resIcon=mxgraph.aws4.key_management_service`** | Using `resIcon=mxgraph.aws4.kms` → red square |
+| 14 | **KMS edges: arrowhead points INTO encrypted resource** | Arrow pointing back to KMS (reversed) |
+| 15 | **GuardDuty → Security Hub (mandatory in Security diagrams)** | Connecting GuardDuty directly to S3/Firehose |
+| 16 | **Fan-in edges (N→1): stagger `entryY` (0.2/0.5/0.8) per edge** | All fan-in edges using same `entryX=0;entryY=0.5` → overlap |
 
 Fix errors → re-validate → Step 6.
 
@@ -801,6 +809,11 @@ If ANY of these appear in your output, the diagram FAILS:
 ❌ Edge with curved/elbow routing                         ← only orthogonal allowed
 ❌ <!-- XML comments -->                                   ← strictly forbidden (official draw.io rule)
 ❌ Any cell style missing html=1                           ← always include html=1
+❌ resIcon=mxgraph.aws4.kms                                ← WRONG name → red square (use key_management_service)
+❌ shape=mxgraph.aws4.resourceIcon WITHOUT resIcon         ← missing resIcon → renders as colored rectangle
+❌ GuardDuty edge directly to S3/Firehose                  ← must go GuardDuty → Security Hub first
+❌ KMS dependency edge arrowhead pointing away from target  ← must use endArrow=classic pointing INTO resource
+❌ Multiple fan-in edges all with entryX=0;entryY=0.5     ← all overlap at same entry point; stagger entryY
 ```
 
 ---
@@ -834,7 +847,7 @@ edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;s
 
 ### Dependency Edge (dashed, thinner)
 ```
-edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#DD344C;dashed=1;
+edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#C7131F;dashed=1;
 ```
 
 ### Hierarchy Edge (default, no color)

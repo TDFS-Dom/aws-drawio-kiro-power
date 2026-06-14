@@ -1358,7 +1358,7 @@ Trong production, pattern thực tế là:
 
 ```xml
 <!-- KMS → Encryption Scope: dependency edge (encrypts relationship) -->
-<mxCell id="e-kms-scope" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#C7131F;dashed=1;dashPattern=5 5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="kms-icon" target="kms-scope">
+<mxCell id="e-kms-scope" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#C7131F;dashed=1;dashPattern=5 5;endArrow=classic;endFill=1;startArrow=none;startFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="kms-icon" target="kms-scope">
   <mxGeometry relative="1" as="geometry" />
 </mxCell>
 ```
@@ -1368,7 +1368,7 @@ Trong production, pattern thực tế là:
 - `dashed=1;dashPattern=5 5` — matches scope boundary dash pattern
 - `strokeColor=#C7131F` — Security category
 - `strokeWidth=1` — thin, dependency (not data flow)
-- Có thể KHÔNG có arrowhead (encrypts = bidirectional relationship) hoặc có (direction = "encrypts")
+- **⚠️ ARROW DIRECTION MANDATORY**: `endArrow=classic;endFill=1` trỏ VÀO scope/target. `startArrow=none` phía KMS. KHÔNG được đảo ngược — KMS là source (provider), resource là target (consumer of encryption).
 
 **Khác với E4 (generic dependency):**
 - E4 = strokeColor varies, dashPattern default
@@ -1482,3 +1482,67 @@ Rule #2 áp dụng cho **INTERMEDIATE containers** — containers mà edge XUYÊ
   ├─ Source HOẶC target trong container đó → OK (allowed)
   └─ NEITHER source nor target trong container → VIOLATION (route around)
 ```
+
+---
+
+### 16.8 — GuardDuty → Security Hub (MANDATORY connection in Security diagrams)
+
+**⚠️ CRITICAL RULE**: Trong MỌI Security Logging / Security Admin diagram, GuardDuty **PHẢI** có edge đến Security Hub. Đây là AWS best practice — GuardDuty gửi findings đến Security Hub để tổng hợp, KHÔNG gửi thẳng sang S3/Firehose.
+
+**Mandatory flow:**
+```
+GuardDuty ──(E12b)──→ Security Hub ──→ EventBridge ──→ Kinesis Firehose ──→ S3 Bucket
+```
+
+**⛔ FORBIDDEN:**
+```
+GuardDuty ──────────────────────────────────────────────────────────→ S3 Bucket   (missing Security Hub)
+GuardDuty ─────────────────────────────────────→ Kinesis Firehose                 (missing Security Hub)
+```
+
+**Edge spec (GuardDuty → Security Hub):**
+```xml
+<mxCell id="e-gd-sh" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#C7131F;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-guardduty" target="i-security-hub">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+```
+
+**Kiểm tra khi validate:**
+1. Tìm GuardDuty cell trong diagram
+2. Verify CÓ edge với `source="guardduty-id"`
+3. Verify edge đó `target="security-hub-id"` (KHÔNG phải Firehose, KHÔNG phải S3)
+
+---
+
+### 16.9 — Fan-in Entry Point Stagger (N sources → 1 target, same entry side)
+
+**Vấn đề**: Khi N edges cùng enter một target từ CÙNG 1 phía (vd: cả 3 sources đều vào từ bên trái), tất cả dùng `entryX=0;entryY=0.5` → chồng chất tại 1 điểm trên target icon, bị merge thành 1 đường.
+
+**Giải pháp: Stagger entryY theo số lượng sources:**
+
+| Sources (N) | entryY values |
+|---|---|
+| 2 | 0.3, 0.7 |
+| 3 | 0.2, 0.5, 0.8 |
+| 4 | 0.2, 0.4, 0.6, 0.8 |
+| 5+ | chia đều trong [0.1, 0.9] |
+
+**Ví dụ — 3 sources vào Logging Bucket từ trái:**
+```xml
+<!-- Source A → Bucket: entryY=0.2 (upper left) -->
+<mxCell id="e-a-bucket" style="edgeStyle=orthogonalEdgeStyle;...;entryX=0;entryY=0.2;entryDx=0;entryDy=0;" ...>
+
+<!-- Source B → Bucket: entryY=0.5 (mid left) -->
+<mxCell id="e-b-bucket" style="edgeStyle=orthogonalEdgeStyle;...;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" ...>
+
+<!-- Source C → Bucket: entryY=0.8 (lower left) -->
+<mxCell id="e-c-bucket" style="edgeStyle=orthogonalEdgeStyle;...;entryX=0;entryY=0.8;entryDx=0;entryDy=0;" ...>
+```
+
+**Khi KHÔNG cần stagger:**
+- Sources đến từ các phía KHÁC NHAU (top / bottom / left / right) → mỗi phía tự nhiên phân tán
+- Chỉ stagger khi 2+ sources vào từ CÙNG 1 phía của target
+
+**Kết hợp với Junction Point (Case 3b):**
+- Nếu N sources dùng Junction Point merge trước → chỉ CÓ 1 edge vào target → KHÔNG cần stagger
+- Stagger chỉ áp dụng khi mỗi source có edge RIÊNG đến target

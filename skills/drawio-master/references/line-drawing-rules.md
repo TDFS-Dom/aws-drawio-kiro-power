@@ -1803,3 +1803,117 @@ Waypoints for Firehose (lane 1, +20px offset):
 □ Dashed edges route at separate X band (30px+ from nearest solid edge)
 □ Fan-in targets have staggered entryY (0.3/0.7 for 2 sources, 0.2/0.5/0.8 for 3)
 ```
+
+
+---
+
+## PART 18: DEPENDENCY FAN-OUT SIMPLIFICATION (KMS / IAM / Encryption)
+
+> **Research basis**: 3 failed diagram generation attempts where 1 KMS icon → 4 S3 buckets produced spaghetti routing that crossed foreign containers regardless of waypoint strategy.
+
+### The Problem
+
+When a single dependency source (KMS, IAM role, shared policy) must connect to **3+ targets** that are spread across a large vertical/horizontal area, drawing individual dashed edges to each target produces:
+1. Edge spaghetti that dominates visual space
+2. Edges forced to route around intermediate containers (causing zigzag)
+3. Edges crossing foreign container boundaries (Rule #2 violation)
+4. Visual clutter that obscures the primary data flow edges (more important information)
+
+**Dependency edges are SECONDARY information** — they tell you about encryption or policy, not about data movement. They should NOT dominate the diagram visually.
+
+### Decision Matrix: Individual Edges vs Annotation
+
+| Condition | Approach | Why |
+|---|---|---|
+| 1 source → 1 target | Individual dashed edge | Simple, no clutter |
+| 1 source → 2 targets, same container or adjacent | Individual dashed edges with stagger | Manageable, stay local |
+| 1 source → 3+ targets, spread across diagram | **Annotation approach** | Individual edges WILL create spaghetti |
+| Source and all targets in same container | Individual dashed edges | Short, contained, no cross |
+| Source in different account from targets, 2+ containers between | **Annotation approach** | Edges must cross foreign boundaries |
+
+### Annotation Approach (Pattern D-ANNO)
+
+Replace N individual dashed edges with:
+1. **One short dashed edge** from dependency source (KMS) to its nearest container boundary OR to the target container boundary
+2. **One text annotation** inside the target container listing the dependency relationship
+
+**Implementation:**
+
+```xml
+<!-- Option A: Single dashed edge from KMS → target container (not individual icons) -->
+<mxCell id="e-kms-logarchive" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#DD344C;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="i-kms" target="c-logarchive">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+
+<!-- Text annotation INSIDE target container explaining encryption -->
+<mxCell id="t-kms-note" value="SSE-KMS: alias/elz-logarchive-s3&#xa;(all buckets encrypted)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=#DD344C;fillColor=none;fontSize=10;fontStyle=2;fontColor=#DD344C;rounded=0;dashed=1;dashPattern=3 3;" vertex="1" parent="c-logarchive-region">
+  <mxGeometry x="50" y="670" width="190" height="40" as="geometry" />
+</mxCell>
+```
+
+```xml
+<!-- Option B: No edge at all — just annotation text with dashed border -->
+<!-- Use when KMS is in same visual row and relationship is obvious from context -->
+<mxCell id="t-kms-note" value="All buckets encrypted with&#xa;KMS alias/elz-logarchive-s3" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=#DD344C;fillColor=none;fontSize=10;fontStyle=2;fontColor=#DD344C;rounded=0;dashed=1;dashPattern=3 3;" vertex="1" parent="c-logarchive-region">
+  <mxGeometry x="50" y="670" width="190" height="40" as="geometry" />
+</mxCell>
+```
+
+### Annotation Text Style
+
+```
+text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;
+strokeColor=#DD344C;fillColor=none;fontSize=10;fontStyle=2;fontColor=#DD344C;
+rounded=0;dashed=1;dashPattern=3 3;
+```
+
+- `strokeColor=#DD344C` — matches dependency edge color (security category)
+- `fillColor=none` — transparent background
+- `fontStyle=2` — italic to differentiate from data labels
+- `dashed=1;dashPattern=3 3` — dashed border matching dependency edge style
+- Place INSIDE the target container at bottom or beside the targets
+
+### Anti-Patterns
+
+#### ❌ AP-D1: Drawing 4+ individual dashed lines across 2+ containers
+
+```
+KMS ┄┄┄┄┄┄┄┄┄┄ crosses Account A ┄┄┄┄┄ crosses Account B ┄┄┄┄┄→ Bucket 1
+KMS ┄┄┄┄┄┄┄┄┄┄ crosses Account A ┄┄┄┄┄ crosses Account B ┄┄┄┄┄→ Bucket 2
+KMS ┄┄┄┄┄┄┄┄┄┄ crosses Account A ┄┄┄┄┄ crosses Account B ┄┄┄┄┄→ Bucket 3
+KMS ┄┄┄┄┄┄┄┄┄┄ crosses Account A ┄┄┄┄┄ crosses Account B ┄┄┄┄┄→ Bucket 4
+```
+
+**Problems**: 8 container boundary crossings, visual spaghetti, data flow edges hidden.
+
+#### ✅ Fix: Single edge + annotation
+
+```
+KMS ┄┄┄→ [Log Archive Account]
+                                    ┌─────────────────────────┐
+                                    │ SSE-KMS: alias/elz-...  │ ← annotation
+                                    │ (all buckets encrypted) │
+                                    └─────────────────────────┘
+```
+
+**Result**: 0 container crossings for dependency, data flow edges clear and unobstructed.
+
+#### ❌ AP-D2: Routing dependency edges through same corridor as data flow
+
+Even with the 30px band offset (AP-5), 4 parallel dashed lines + 4 parallel solid lines in the same corridor = visual overload. Use annotation approach instead.
+
+### When to STILL use individual dashed edges
+
+- Source and target are in ADJACENT containers (1 hop, no crossing)
+- Only 1-2 targets (manageable visual weight)
+- The specific target distinction matters (e.g., different KMS keys for different buckets)
+- Diagram is LOW density (≤5 total edges) — individual edges won't clutter
+
+### Summary: Priority hierarchy for dependency representation
+
+```
+1. If targets ≤ 2 AND no foreign boundary crossing → individual dashed edges
+2. If targets ≥ 3 OR edges must cross foreign boundaries → annotation approach
+3. If all targets share SAME dependency (same KMS key) → ALWAYS annotation
+4. If different dependencies per target → consider grouping (2-3 annotations max)
+```
